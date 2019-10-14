@@ -15,7 +15,7 @@ public class User implements Serializable{
     private String username;
     private String password;
     private String requestState;
-
+    private boolean login;
     public User(String username, String password, String requestState) {
         this.username = username;
         this.password = password;
@@ -45,5 +45,10 @@ public class User implements Serializable{
     public void setRequestState(String requestState){
         this.requestState = requestState;
     }
-    
+    public void setLogin(boolean login){
+        this.login = login;
+    }
+    public boolean isLogin(){
+        return login;
+    }
 }

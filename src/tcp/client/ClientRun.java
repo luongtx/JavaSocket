@@ -15,6 +15,6 @@ public class ClientRun {
         ClientSignUpFrm signUpView = new ClientSignUpFrm();
         loginView.setVisible(true);
         signUpView.setVisible(false);
-        ClientControl control = new ClientControl(loginView, signUpView);
+        Client control = new Client(loginView, signUpView);
     }
 }

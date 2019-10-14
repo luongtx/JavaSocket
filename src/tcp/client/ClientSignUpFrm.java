@@ -5,7 +5,6 @@
  */
 package tcp.client;
 
-import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 
 /**
@@ -17,7 +16,6 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
     /**
      * Creates new form ClientSignUpFrm
      */
-    private User signUpUser;
     public ClientSignUpFrm() {
         initComponents();
     }
@@ -35,8 +33,8 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
         jPasswordField1 = new javax.swing.JPasswordField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btnSignUp = new javax.swing.JButton();
+        btnBack = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 255, 255));
@@ -45,10 +43,20 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
 
         jLabel2.setText("Password");
 
-        jButton1.setBackground(new java.awt.Color(0, 255, 255));
-        jButton1.setText("Sign Up");
+        btnSignUp.setBackground(new java.awt.Color(0, 255, 255));
+        btnSignUp.setText("Sign Up");
+        btnSignUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSignUpActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText("Back");
+        btnBack.setText("Back");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -64,11 +72,11 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
                         .addGap(36, 36, 36)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jTextField1)
-                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSignUp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(27, 27, 27)
-                        .addComponent(jButton2)))
+                        .addComponent(btnBack)))
                 .addContainerGap(151, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -83,38 +91,45 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(34, 34, 34)
-                .addComponent(jButton1)
+                .addComponent(btnSignUp)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
-                .addComponent(jButton2)
+                .addComponent(btnBack)
                 .addGap(20, 20, 20))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-    public void addSignUpListener (ActionListener sign){
-        jButton1.addActionListener(sign);
-    }
-    public void addQuitListner (ActionListener quit){
-        jButton2.addActionListener(quit);
-    }
+
+    private void btnSignUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSignUpActionPerformed
+        // TODO add your handling code here:
+        User userInput = getSignUpUser();
+        if(userInput!=null) Client.signUp(userInput);
+    }//GEN-LAST:event_btnSignUpActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        // TODO add your handling code here:
+        ClientLoginFrm loginFrm = new ClientLoginFrm();
+        loginFrm.setVisible(true);
+        dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     public User getSignUpUser(){
         String txtUsername = jTextField1.getText();
         String txtPass = jPasswordField1.getText();
-        System.out.println("sign up pass: "+txtPass);
-        if(txtUsername.equals("") || txtPass.equals("")) {
-            JOptionPane.showMessageDialog(null, "username and password must not be empty!" + txtPass);
-            return null;
-        }
-        return new User(txtUsername, txtPass, "signup");
+        User user = null;
+        if(txtUsername.equals("")) JOptionPane.showMessageDialog(rootPane, "username field empty!");
+        else if(txtPass.equals("")) JOptionPane.showMessageDialog(rootPane, "password field empty!");
+        else user = new User(txtUsername, txtPass, "signup");
+        return user;
     }
     /**
      * @param args the command line arguments
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton btnBack;
+    private javax.swing.JButton btnSignUp;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPasswordField jPasswordField1;
