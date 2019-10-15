@@ -5,7 +5,6 @@
  */
 package tcp.server;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -15,8 +14,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
 import tcp.client.User;
 
 /**
@@ -24,93 +22,179 @@ import tcp.client.User;
  * @author luongtx
  */
 public final class ServerControl {
+
     private ServerSocket myServer;
-    private Socket socketConnection;
-    private Connection dbConnection;
-    private final int serverPort = 5555;
-    public ServerControl(){
+    private Socket socketConn;
+    private Connection dbConn;
+    private final int serverPort = 7777;
+    private ArrayList<User> onlineUsers = new ArrayList<>();
+
+    public ServerControl() {
         DBConnect("tcplogin", "root", "");
         listenning(serverPort);
     }
-    public void DBConnect(String dbName, String username, String password){
+
+    public void DBConnect(String dbName, String username, String password) {
         String dbClass = "com.mysql.jdbc.Driver";
         String dbURL = "jdbc:mysql://localhost:3306/" + dbName;
-        try{
+        try {
             Class.forName(dbClass);
-            dbConnection = DriverManager.getConnection(dbURL, username, password);
+            dbConn = DriverManager.getConnection(dbURL, username, password);
             System.out.println("Connect DB successfully!");
-        }catch(ClassNotFoundException | SQLException e){
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
-    
-    public void listenning(int portNumber){
+
+    public void listenning(int portNumber) {
         try {
             //create(bind) server socket to listenning client on specified port
             myServer = new ServerSocket(portNumber);
             System.out.println("Server is listenning...");
             //to serve multiple clients
-            while(true){
+            while (true) {
                 try {
                     //accept a client connection request
-                    socketConnection = myServer.accept();
-                    ObjectInputStream ois = new ObjectInputStream(socketConnection.getInputStream());
-                    ObjectOutputStream oos = new ObjectOutputStream(socketConnection.getOutputStream());
-
-                    User user = (User) ois.readObject();
-                    String status = getCheckingStatus(user);
-                    oos.writeObject(status);
-                    oos.flush();
-                } catch (IOException ex) {
-
-                } finally {
-                    if (socketConnection != null) {
-                        socketConnection.close();
-                    }
-                }
+                    socketConn = myServer.accept();
+                    System.out.println("server accept request");
+                    ClientHandler clientHandler = new ClientHandler(socketConn);
+                    clientHandler.start();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                } 
             }
 
-        }catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(ServerControl.class.getName()).log(Level.SEVERE, null, ex);
-        }finally{
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    class ClientHandler extends Thread {
+        Socket conn;
+        ObjectInputStream ois;
+        ObjectOutputStream oos;
+
+        public ClientHandler(Socket conn) {
+            this.conn = conn;
+            try{
+                ois = new ObjectInputStream(conn.getInputStream());
+                oos = new ObjectOutputStream(conn.getOutputStream());
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        }
+        @Override
+        public void run(){
+            String request = "";
+            while (true) {
+                try {
+                    request = (String) ois.readObject();
+                    handle(request);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        public void handle(String request){
             try {
-                if(myServer !=null) myServer.close();
-                System.out.println("Server is closed");
-            } catch (IOException ex) {
-                Logger.getLogger(ServerControl.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-    }
-    private String getCheckingStatus(User user) {
-        String sql1 = "SELECT * FROM tblUser WHERE username = ? && password = ?";
-        String sql2 = "INSERT INTO tblUser (username, password) VALUES(?,?)";
-        PreparedStatement ps1,ps2;
-        ResultSet rs;
-        String checkingStatus = "";
-        try{
-            ps1 = dbConnection.prepareStatement(sql1);
-            ps1.setString(1, user.getUsername());
-            ps1.setString(2, user.getPassword());
-            rs = ps1.executeQuery();
-            ps2 = dbConnection.prepareStatement(sql2);
-            ps2.setString(1, user.getUsername());
-            ps2.setString(2, user.getPassword());
-            
-            if(user.getRequestState().equals("login")){
-               if(rs.next()) checkingStatus = "OK";
-               else checkingStatus =  "NOTFOUND";
-            }else{
-                if(rs.next()) checkingStatus = "EXISTED";
-                else{
-                    ps2.executeUpdate();
-                    checkingStatus = "OK";
+                switch (request) {
+                    case "LOGIN":
+                        User user = (User) ois.readObject();
+                        String status = checkLogin(user);
+                        oos.writeObject(status);
+                        oos.flush();
+                        if(status.equals("OK")) {
+                            System.out.println("username: " + user.getUsername());
+                            if(!onlineUsers.contains(user)) onlineUsers.add(user);
+                        }
+                        break;
+                    case "SIGNUP":
+                        user = (User) ois.readObject();
+//                        System.out.println("username: " + user.getUsername());
+                        status = checkSignUp(user);
+                        oos.writeObject(status);
+                        oos.flush();
+                        break;
+                    case "GETONLINEUSERS":
+                        System.out.println("online: " + onlineUsers.size());
+                        oos.writeObject(onlineUsers);
+                        break;
+                    case "LOGOUT":
+                        user = (User) ois.readObject();
+                        onlineUsers.remove(user);
+                        System.out.println("online: " + onlineUsers.size());
+                        break;
+                    default:
+                        break;
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-
-        }catch(Exception e){
-            e.printStackTrace();
         }
-       return checkingStatus;
+
+        public User getUserByName(String name) {
+            String sql = "SELECT * FROM tblUser WHERE username = ?";
+            PreparedStatement ps;
+            ResultSet rs;
+            User user = null;
+            try {
+                ps = dbConn.prepareStatement(sql);
+                ps.setString(1, name);
+                rs = ps.executeQuery();
+                user = new User(rs.getString(1), rs.getString(2));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return user;
+        }
+
+        public String checkSignUp(User user) {
+            String sql1 = "SELECT * FROM tblUser WHERE username = ?";
+            String sql2 = "INSERT INTO tblUser (username, password) VALUES(?,?)";
+            PreparedStatement ps1, ps2;
+            ResultSet rs;
+            String check = "";
+            try {
+                ps1 = dbConn.prepareStatement(sql1);
+                ps1.setString(1, user.getUsername());
+                rs = ps1.executeQuery();
+
+                if (rs.next()) {
+                    check = "EXISTED";
+                } else {
+                    ps2 = dbConn.prepareStatement(sql2);
+                    ps2.setString(1, user.getUsername());
+                    ps2.setString(2, user.getUsername());
+                    ps2.executeUpdate();
+                    check = "OK";
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return check;
+        }
+
+        public String checkLogin(User user) {
+            String sql = "SELECT * FROM tblUser WHERE username = ? && password = ?";
+            PreparedStatement ps;
+            ResultSet rs;
+            String check = "";
+            try {
+                ps = dbConn.prepareStatement(sql);
+                ps.setString(1, user.getUsername());
+                ps.setString(2, user.getPassword());
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    check = "OK";
+                    user.setLogin(true);
+                } else {
+                    check = "NOTFOUND";
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return check;
+        }
     }
+
 }
+

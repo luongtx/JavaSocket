@@ -3,9 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package tcp.client;
+package tcp.test.client;
 
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import javax.swing.JOptionPane;
+
 /**
  *
  * @author luongtx
@@ -15,6 +18,7 @@ public class ClientLoginFrm extends javax.swing.JFrame {
     /**
      * Creates new form clientview
      */
+    private User loginUser;
     public ClientLoginFrm() {
         initComponents();
     }
@@ -29,58 +33,50 @@ public class ClientLoginFrm extends javax.swing.JFrame {
     private void initComponents() {
 
         jTextField1 = new javax.swing.JTextField();
-        btnLogin = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jPasswordField1 = new javax.swing.JPasswordField();
         jLabel3 = new javax.swing.JLabel();
-        lbSignUp = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(0, 255, 255));
 
-        btnLogin.setBackground(new java.awt.Color(0, 255, 255));
-        btnLogin.setText("Login");
-        btnLogin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLoginActionPerformed(evt);
-            }
-        });
+        jButton1.setBackground(new java.awt.Color(0, 255, 255));
+        jButton1.setText("Login");
 
         jLabel1.setText("Username");
 
         jLabel2.setText("Password");
 
-        jLabel3.setText("New member?");
+        jLabel3.setText("Not member yet?");
 
-        lbSignUp.setForeground(new java.awt.Color(0, 51, 204));
-        lbSignUp.setText("Sign up");
-        lbSignUp.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                lbSignUpMouseClicked(evt);
-            }
-        });
+        jLabel4.setForeground(new java.awt.Color(0, 51, 204));
+        jLabel4.setText("Sign up");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(80, 80, 80)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGap(36, 36, 36)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(80, 80, 80)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel2))
+                        .addGap(36, 36, 36)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextField1)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE)
+                            .addComponent(jPasswordField1)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(177, 177, 177)
                         .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbSignUp))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jTextField1)
-                        .addComponent(btnLogin, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE)
-                        .addComponent(jPasswordField1)))
-                .addContainerGap(157, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel4)))
+                .addContainerGap(137, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -94,51 +90,43 @@ public class ClientLoginFrm extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(34, 34, 34)
-                .addComponent(btnLogin)
+                .addComponent(jButton1)
                 .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(lbSignUp))
+                    .addComponent(jLabel4))
                 .addContainerGap(53, Short.MAX_VALUE))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        // TODO add your handling code here:
-        User userInput = getInputUser();
-        if(userInput!=null) Client.login(userInput);
-    }//GEN-LAST:event_btnLoginActionPerformed
-
-    private void lbSignUpMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lbSignUpMouseClicked
-        // TODO add your handling code here:
-        ClientSignUpFrm signUpFrm = new ClientSignUpFrm();
-        signUpFrm.setVisible(true);
-        dispose();
-    }//GEN-LAST:event_lbSignUpMouseClicked
-
-    public User getInputUser(){
+    public void addLoginListener(ActionListener log){
+        jButton1.addActionListener(log);
+    }
+    public void addRenderSignUpFrmListener(MouseAdapter renderSignUp){
+        jLabel4.addMouseListener(renderSignUp);
+    }
+    public User getLoginUser(){
         String txtUsername = jTextField1.getText();
         String txtPass = jPasswordField1.getText();
-        User user = null;
-        if(txtUsername.equals("")) JOptionPane.showMessageDialog(rootPane, "username field empty!");
-        else if(txtPass.equals("")) JOptionPane.showMessageDialog(rootPane, "password field empty!");
-        else user = new User(txtUsername, txtPass);
-        return user;
+        if(txtUsername.equals("") || txtPass.equals("")) {
+            JOptionPane.showMessageDialog(null, "username and password must not be empty!");
+            return null;
+        }
+        else return new User(txtUsername, txtPass, "login");
     }
     /**
      * @param args the command line arguments
      */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnLogin;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JLabel lbSignUp;
     // End of variables declaration//GEN-END:variables
 }
