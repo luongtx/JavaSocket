@@ -56,11 +56,13 @@ public final class ServerControl {
                 try {
                     //accept a client connection request
                     socketConn = myServer.accept();
+                    socketConn.
                     System.out.println("server accept request");
                     ClientHandler clientHandler = new ClientHandler(socketConn);
                     clientHandler.start();
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    break;
                 } 
             }
 
@@ -90,7 +92,8 @@ public final class ServerControl {
                     request = (String) ois.readObject();
                     handle(request);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    System.out.println("Client closed!");
+                    break;
                 }
             }
         }
@@ -104,7 +107,7 @@ public final class ServerControl {
                         oos.flush();
                         if(status.equals("OK")) {
                             System.out.println("username: " + user.getUsername());
-                            if(!onlineUsers.contains(user)) onlineUsers.add(user);
+                            if(!checkOnline(user)) onlineUsers.add(user);
                         }
                         break;
                     case "SIGNUP":
@@ -115,6 +118,7 @@ public final class ServerControl {
                         oos.flush();
                         break;
                     case "GETONLINEUSERS":
+                        oos.reset();//remove old objects in stream
                         System.out.println("online: " + onlineUsers.size());
                         oos.writeObject(onlineUsers);
                         break;
@@ -130,8 +134,13 @@ public final class ServerControl {
                 ex.printStackTrace();
             }
         }
-
-        public User getUserByName(String name) {
+        private boolean checkOnline(User cUser){
+            for(User user: onlineUsers){
+                if(user.getUsername().equals(cUser.getUsername())) return true;
+            }
+            return false;
+        }
+        private User getUserByName(String name) {
             String sql = "SELECT * FROM tblUser WHERE username = ?";
             PreparedStatement ps;
             ResultSet rs;
@@ -147,7 +156,7 @@ public final class ServerControl {
             return user;
         }
 
-        public String checkSignUp(User user) {
+        private String checkSignUp(User user) {
             String sql1 = "SELECT * FROM tblUser WHERE username = ?";
             String sql2 = "INSERT INTO tblUser (username, password) VALUES(?,?)";
             PreparedStatement ps1, ps2;
@@ -173,7 +182,7 @@ public final class ServerControl {
             return check;
         }
 
-        public String checkLogin(User user) {
+        private String checkLogin(User user) {
             String sql = "SELECT * FROM tblUser WHERE username = ? && password = ?";
             PreparedStatement ps;
             ResultSet rs;

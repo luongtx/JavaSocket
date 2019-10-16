@@ -5,12 +5,10 @@
  */
 package tcp.client;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -19,18 +17,13 @@ import javax.swing.JOptionPane;
 public class Client {
 
     private Socket mySocket;
-    private static ObjectInputStream ois;
-    private static ObjectOutputStream oos;
+    private ObjectInputStream ois;
+    private ObjectOutputStream oos;
     private static String ipAddress = "localhost";
     private static int port = 7777;
-    private static ClientLoginFrm loginFrm;
-    private static ClientSignUpFrm signUpFrm;
-    private static RoomFrm roomFrm;
-    private static User currentUser;
-    public Client(ClientLoginFrm loginView, ClientSignUpFrm signUpView){
+    private User currentUser;
+    public Client(){
         openConnection();
-        loginFrm = loginView;
-        signUpFrm = signUpView;
     }
     public void openConnection(){
         if(mySocket==null){
@@ -54,71 +47,60 @@ public class Client {
             }
         }
     }
-    public static void login(User user) {
+    public boolean login(User user) {
         try {
             if (user != null) {
                 oos.writeObject("LOGIN");
                 oos.writeObject(user);
                 String msg = (String) ois.readObject();
                 if (msg.equals("OK")) {
-                    JOptionPane.showMessageDialog(null, "login successfully!");
                     user.setLogin(true);
                     currentUser = user;
-                    roomFrm = new RoomFrm();
-                    roomFrm.setVisible(true);
-                    loginFrm.dispose();
-                } else if (msg.equals("NOTFOUND")) {
-                    JOptionPane.showMessageDialog(null, "no such account!");
+                    return true;
                 }
             }
-        } catch (IOException | ClassNotFoundException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return false;
     }
-    public static void logout(){
+    public boolean logout(){
         try{
             oos.writeObject("LOGOUT");
             oos.writeObject(currentUser);
             currentUser.setLogin(false);
-            loginFrm = new ClientLoginFrm();
-            loginFrm.setVisible(true);
-            roomFrm.dispose();
         }catch(Exception ex){
             ex.printStackTrace();
         }
+        return true;
     }
 
-    public static void signUp(User user) {
+    public boolean signUp(User user) {
         try {
             if (user != null) {
                 oos.writeObject("SIGNUP");
                 oos.writeObject(user);
                 String msg = (String) ois.readObject();
-                if (msg.equals("OK")) {
-                    JOptionPane.showMessageDialog(null, "sign up ssuccessfully!");
-                } else if (msg.equals("EXISTED")) {
-                    JOptionPane.showMessageDialog(null, "account already registered!");
-                }
+                if (msg.equals("OK")) return true;
             }
-        } catch (IOException | ClassNotFoundException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return false;
     }
-    public static ArrayList<User> userList;
-    public static void getOnlineUsers(){
+    private ArrayList<User> userList;
+    public ArrayList<User> getOnlineUsers(){
         try {
             oos.writeObject("GETONLINEUSERS");
             userList = (ArrayList<User>) ois.readObject();
             System.out.println(userList.size());
-            RoomFrm.lstRoom.removeAll();
-            userList.forEach((u) -> {
-                RoomFrm.lstRoom.add(u.getUsername());
-            });
+            
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return userList;
     }
-    public static User getCurrentUser(){
+    public User getCurrentUser(){
         return currentUser;
     }
 }

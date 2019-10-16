@@ -11,10 +11,8 @@ package tcp.client;
  */
 public class ClientRun {
     public static void main(String[] args) {
-        ClientLoginFrm loginView = new ClientLoginFrm();
-        ClientSignUpFrm signUpView = new ClientSignUpFrm();
-        loginView.setVisible(true);
-        signUpView.setVisible(false);
-        Client control = new Client(loginView, signUpView);
+        Client client = new Client();
+        ClientLoginFrm loginFrm = new ClientLoginFrm(client);
+        loginFrm.setVisible(true);
     }
 }

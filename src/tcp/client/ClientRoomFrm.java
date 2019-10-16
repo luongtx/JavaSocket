@@ -5,20 +5,24 @@
  */
 package tcp.client;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author luongtx
  */
-public class RoomFrm extends javax.swing.JFrame {
+public class ClientRoomFrm extends javax.swing.JFrame {
 
     /**
      * Creates new form RoomFrm
      */
-    public RoomFrm() {
+    Client client;
+    ArrayList<User> userList;
+    public ClientRoomFrm(Client client) {
         initComponents();
-        Client.getOnlineUsers();
-        lbOnline.setText(Integer.toString(Client.userList.size()));
-        lbUser.setText(Client.getCurrentUser().getUsername());
+        this.client = client;
+        updateRoom();
+        lbUser.setText(client.getCurrentUser().getUsername());
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -54,7 +58,7 @@ public class RoomFrm extends javax.swing.JFrame {
         btnViewRoom.setBackground(new java.awt.Color(0, 255, 255));
         btnViewRoom.setText("View Room");
 
-        btnLogout.setBackground(new java.awt.Color(204, 204, 204));
+        btnLogout.setBackground(new java.awt.Color(153, 153, 153));
         btnLogout.setText("Log out");
         btnLogout.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -62,7 +66,7 @@ public class RoomFrm extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setText("Online :");
+        jLabel1.setText("Online users:");
 
         lbUser.setText("jLabel3");
 
@@ -75,63 +79,69 @@ public class RoomFrm extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(151, Short.MAX_VALUE)
+                        .addContainerGap(90, Short.MAX_VALUE)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lbOnline)
-                        .addGap(32, 32, 32)
+                        .addGap(56, 56, 56)
                         .addComponent(btnLogout, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lstRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(114, 114, 114)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnCombat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnRefresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnViewRoom, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addComponent(lstRoom, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(lbUser)
                 .addGap(29, 29, 29))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(123, 123, 123)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(btnCombat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnRefresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnViewRoom, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lbUser)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(15, 15, 15)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(lbOnline)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnLogout)
-                        .addGap(19, 19, 19)
-                        .addComponent(lstRoom, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(19, 19, 19)
-                        .addComponent(btnRefresh)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnCombat)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnViewRoom)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btnLogout)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(lbOnline)))
+                .addGap(19, 19, 19)
+                .addComponent(lstRoom, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(19, 19, 19)
+                .addComponent(btnRefresh)
+                .addGap(18, 18, 18)
+                .addComponent(btnCombat)
+                .addGap(18, 18, 18)
+                .addComponent(btnViewRoom)
                 .addContainerGap(31, Short.MAX_VALUE))
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
+    private void updateRoom(){
+        userList = client.getOnlineUsers();
+        lstRoom.removeAll();
+        userList.forEach((u) -> {
+            ClientRoomFrm.lstRoom.add(u.getUsername());
+        });
+        lbOnline.setText(Integer.toString(userList.size()));
+    }
     private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
         // TODO add your handling code here:
-        Client.getOnlineUsers();
+        updateRoom();
     }//GEN-LAST:event_btnRefreshActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
-        Client.logout();
+        client.logout();
+        new ClientLoginFrm(client).setVisible(true);
+        dispose();
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     /**
