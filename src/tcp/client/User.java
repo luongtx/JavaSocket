@@ -6,6 +6,7 @@
 package tcp.client;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 
 /**
  *
@@ -18,6 +19,9 @@ public class User implements Serializable{
     private int lose;
     private int score;
     private boolean login = false;
+    private InetAddress ipAddress;
+    private int port;
+
     
     public User(String username, String password) {
         this.username = username;
@@ -82,4 +86,20 @@ public class User implements Serializable{
     public void setScore(int score) {
         this.score = score;
     }
+    public InetAddress getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(InetAddress ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+    
 }

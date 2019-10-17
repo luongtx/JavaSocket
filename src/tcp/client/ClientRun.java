@@ -14,5 +14,6 @@ public class ClientRun {
         Client client = new Client();
         ClientLoginFrm loginFrm = new ClientLoginFrm(client);
         loginFrm.setVisible(true);
+        client.listenBattleRequest();
     }
 }

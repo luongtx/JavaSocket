@@ -5,6 +5,7 @@
  */
 package tcp.client;
 
+import java.awt.event.WindowAdapter;
 import javax.swing.JOptionPane;
 /**
  *
@@ -20,7 +21,6 @@ public class ClientLoginFrm extends javax.swing.JFrame {
         initComponents();
         this.client = client;
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -128,16 +128,24 @@ public class ClientLoginFrm extends javax.swing.JFrame {
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         // TODO add your handling code here:
-        boolean loginState = false;
+        int loginState = 0;
         User userInput = getInputUser();
         if (userInput != null) {
             loginState = client.login(userInput);
-            if (loginState) {
-                JOptionPane.showMessageDialog(rootPane, "Login successfully!");
-                new ClientRoomFrm(client).setVisible(true);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(rootPane, "No such account!");
+            switch (loginState) {
+                case 1:
+                    JOptionPane.showMessageDialog(rootPane, "Login successfully!");
+                    ClientRoomFrm roomFrm = new ClientRoomFrm(client);
+                    roomFrm.setVisible(true);
+                    dispose();
+//                client.listenBattleRequest(roomFrm);
+                    break;
+                case 0:
+                    JOptionPane.showMessageDialog(rootPane, "Wrong username or password");
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(rootPane, "User has already logged in");
+                    break;
             }
         }
     }//GEN-LAST:event_btnLoginActionPerformed

@@ -5,6 +5,8 @@
  */
 package tcp.client;
 
+import java.awt.event.WindowAdapter;
+
 /**
  *
  * @author luongtx
@@ -14,10 +16,18 @@ public class PlayGround extends javax.swing.JFrame {
     /**
      * Creates new form MainFrm
      */
-    public PlayGround() {
+    Client client;
+    public PlayGround(Client client) {
         initComponents();
+        this.client = client;
+        this.addWindowListener(new WindowsClosedListener());
     }
-
+    private class WindowsClosedListener extends WindowAdapter{
+        @Override
+        public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            client.logout();
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -63,12 +73,12 @@ public class PlayGround extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
      * @param args the command line arguments
      */
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

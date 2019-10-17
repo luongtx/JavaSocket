@@ -5,7 +5,9 @@
  */
 package tcp.client;
 
+import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -19,10 +21,18 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     Client client;
     ArrayList<User> userList;
     public ClientRoomFrm(Client client) {
+//        client.listenBattleRequest();
         initComponents();
         this.client = client;
-        updateRoom();
         lbUser.setText(client.getCurrentUser().getUsername());
+        updateRoom();
+        this.addWindowListener(new WindowsClosedListener());
+    }
+    private class WindowsClosedListener extends WindowAdapter{
+        @Override
+        public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+            client.logout();
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -53,7 +63,12 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         });
 
         btnCombat.setBackground(new java.awt.Color(0, 255, 255));
-        btnCombat.setText("Join Battle");
+        btnCombat.setText("Combat");
+        btnCombat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCombatActionPerformed(evt);
+            }
+        });
 
         btnViewRoom.setBackground(new java.awt.Color(0, 255, 255));
         btnViewRoom.setText("View Room");
@@ -136,7 +151,9 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         // TODO add your handling code here:
         updateRoom();
     }//GEN-LAST:event_btnRefreshActionPerformed
-
+    public int showConfirmDialog(Object msg, String title){
+        return JOptionPane.showConfirmDialog(rootPane, msg, title, JOptionPane.OK_CANCEL_OPTION);
+    }
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
         client.logout();
@@ -144,10 +161,16 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         dispose();
     }//GEN-LAST:event_btnLogoutActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-
+    private void btnCombatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCombatActionPerformed
+        // TODO add your handling code here:\
+        String opponent = lstRoom.getSelectedItem();
+        if(opponent==null) {
+            JOptionPane.showMessageDialog(rootPane, "select an opponent!");
+            return;
+        }
+        client.requestBattle(opponent);
+    }//GEN-LAST:event_btnCombatActionPerformed
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCombat;
     private javax.swing.JButton btnLogout;

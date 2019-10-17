@@ -28,7 +28,6 @@ public final class ServerControl {
     private Connection dbConn;
     private final int serverPort = 7777;
     private ArrayList<User> onlineUsers = new ArrayList<>();
-
     public ServerControl() {
         DBConnect("tcplogin", "root", "");
         listenning(serverPort);
@@ -56,7 +55,6 @@ public final class ServerControl {
                 try {
                     //accept a client connection request
                     socketConn = myServer.accept();
-                    socketConn.
                     System.out.println("server accept request");
                     ClientHandler clientHandler = new ClientHandler(socketConn);
                     clientHandler.start();
@@ -124,9 +122,12 @@ public final class ServerControl {
                         break;
                     case "LOGOUT":
                         user = (User) ois.readObject();
-                        onlineUsers.remove(user);
+                        user.setLogin(false);
+                        onlineUsers.remove(getUserIndex(user));
                         System.out.println("online: " + onlineUsers.size());
                         break;
+                    case "BATTLE":
+                        
                     default:
                         break;
                 }
@@ -140,20 +141,12 @@ public final class ServerControl {
             }
             return false;
         }
-        private User getUserByName(String name) {
-            String sql = "SELECT * FROM tblUser WHERE username = ?";
-            PreparedStatement ps;
-            ResultSet rs;
-            User user = null;
-            try {
-                ps = dbConn.prepareStatement(sql);
-                ps.setString(1, name);
-                rs = ps.executeQuery();
-                user = new User(rs.getString(1), rs.getString(2));
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        private int getUserIndex(User user){
+            int size = onlineUsers.size();
+            for(int i=0;i<size;i++){
+                if(onlineUsers.get(i).getUsername().equals(user.getUsername())) return i;
             }
-            return user;
+            return -1;
         }
 
         private String checkSignUp(User user) {
