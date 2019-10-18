@@ -7,6 +7,7 @@ package tcp.client;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.Vector;
 
 /**
  *
@@ -37,6 +38,10 @@ public class User implements Serializable{
         this.win = win;
         this.lose = lose;
         this.score = score;
+    }
+
+    public User() {
+
     }
     
     public String getUsername() {
@@ -100,6 +105,10 @@ public class User implements Serializable{
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public Object[] toObject() {
+        return new Object[]{username,password,win,lose,score};
     }
     
 }

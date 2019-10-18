@@ -10,10 +10,6 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import tcp.client.User;
 
@@ -27,22 +23,12 @@ public final class ServerControl {
     private Socket socketConn;
     private Connection dbConn;
     private final int serverPort = 7777;
+    ServerDAO dao;
     private ArrayList<User> onlineUsers = new ArrayList<>();
     public ServerControl() {
-        DBConnect("tcplogin", "root", "");
+        dao = new ServerDAO();
+        dbConn = dao.getConnection();
         listenning(serverPort);
-    }
-
-    public void DBConnect(String dbName, String username, String password) {
-        String dbClass = "com.mysql.jdbc.Driver";
-        String dbURL = "jdbc:mysql://localhost:3306/" + dbName;
-        try {
-            Class.forName(dbClass);
-            dbConn = DriverManager.getConnection(dbURL, username, password);
-            System.out.println("Connect DB successfully!");
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     public void listenning(int portNumber) {
@@ -100,7 +86,9 @@ public final class ServerControl {
                 switch (request) {
                     case "LOGIN":
                         User user = (User) ois.readObject();
-                        String status = checkLogin(user);
+                        String status = "";
+                        if(dao.getUserAccount(user)) status = "OK";
+                        else status = "NOTFOUND";
                         oos.writeObject(status);
                         oos.flush();
                         if(status.equals("OK")) {
@@ -111,7 +99,9 @@ public final class ServerControl {
                     case "SIGNUP":
                         user = (User) ois.readObject();
 //                        System.out.println("username: " + user.getUsername());
-                        status = checkSignUp(user);
+                        status = "";
+                        if(dao.addUserAccount(user)) status = "OK";
+                        else status = "EXISTED";
                         oos.writeObject(status);
                         oos.flush();
                         break;
@@ -141,62 +131,16 @@ public final class ServerControl {
             }
             return false;
         }
-        private int getUserIndex(User user){
+        private int getUserIndex(User user) {
             int size = onlineUsers.size();
-            for(int i=0;i<size;i++){
-                if(onlineUsers.get(i).getUsername().equals(user.getUsername())) return i;
+            for (int i = 0; i < size; i++) {
+                if (onlineUsers.get(i).getUsername().equals(user.getUsername())) {
+                    return i;
+                }
             }
             return -1;
         }
-
-        private String checkSignUp(User user) {
-            String sql1 = "SELECT * FROM tblUser WHERE username = ?";
-            String sql2 = "INSERT INTO tblUser (username, password) VALUES(?,?)";
-            PreparedStatement ps1, ps2;
-            ResultSet rs;
-            String check = "";
-            try {
-                ps1 = dbConn.prepareStatement(sql1);
-                ps1.setString(1, user.getUsername());
-                rs = ps1.executeQuery();
-
-                if (rs.next()) {
-                    check = "EXISTED";
-                } else {
-                    ps2 = dbConn.prepareStatement(sql2);
-                    ps2.setString(1, user.getUsername());
-                    ps2.setString(2, user.getUsername());
-                    ps2.executeUpdate();
-                    check = "OK";
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            return check;
-        }
-
-        private String checkLogin(User user) {
-            String sql = "SELECT * FROM tblUser WHERE username = ? && password = ?";
-            PreparedStatement ps;
-            ResultSet rs;
-            String check = "";
-            try {
-                ps = dbConn.prepareStatement(sql);
-                ps.setString(1, user.getUsername());
-                ps.setString(2, user.getPassword());
-                rs = ps.executeQuery();
-                if (rs.next()) {
-                    check = "OK";
-                    user.setLogin(true);
-                } else {
-                    check = "NOTFOUND";
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            return check;
-        }
     }
-
+    
 }
 
