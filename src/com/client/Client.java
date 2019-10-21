@@ -40,7 +40,6 @@ public class Client {
         currentUser = new User();
         connectServer();
         openUDPSocket();
-        
 //        listenRequest();
     }
     public void initUI(){
@@ -81,12 +80,24 @@ public class Client {
             }
         }
     }
+    public User getUserByName(String userName){
+        for(User user: loggedUsers){
+            if(user.getUsername().equals(userName)){
+                return user;
+            }
+        }
+        return null;
+    }
     public void login(User user) {
         try {
             loggedUsers = getOnlineUsers();
-            if(getUserByName(user.getUsername())!=null) {
-                JOptionPane.showMessageDialog(roomFrm, "This account have already logged in!");
-                return;
+            try{
+                if(getUserByName(user.getUsername())!=null) {
+                    JOptionPane.showMessageDialog(roomFrm, "This account currently logged in!");
+                    return;
+                }
+            }catch(Exception ex){
+                
             }
             user.setIpAddress(currentUser.getIpAddress());
             user.setPort(currentUser.getPort());
@@ -98,7 +109,6 @@ public class Client {
                 System.out.println("user: "+currentUser.getUsername());
                 System.out.println("ip: "+currentUser.getIpAddress());
                 System.out.println("port: "+currentUser.getPort());
-//                JOptionPane.showMessageDialog(loginFrm, "Login successfully!");
                 roomFrm = new ClientRoomFrm(this);
                 roomFrm.setVisible(true);
 //                loginFrm.setVisible(false);
@@ -112,13 +122,14 @@ public class Client {
     }
     public void logout(){
         try{
+            currentUser.setLogin(false);
             oos.writeObject("LOGOUT");
             oos.writeObject(currentUser);
         }catch(Exception ex){
             ex.printStackTrace();
         }
     }
-
+    
     public boolean signUp(User user) {
         try {
             oos.writeObject("SIGNUP");
@@ -130,40 +141,43 @@ public class Client {
         }
         return false;
     }
-    public void requestSolo(String opponent){
+   
+    public void requestSolo(int enemyId){
         try {
-            //send battle request
-            String req = "SOLO " + currentUser.getUsername(); 
+            String req = "SOLO " + currentUser.getUsername();
             byte[] send_buf = req.getBytes();
-            User user = getUserByName(opponent);
-            if(currentUser.getUsername().equals(opponent)) {
+            User enemy = loggedUsers.get(enemyId);
+            if(currentUser.getUsername().equals(enemy.getUsername())){
                 JOptionPane.showMessageDialog(null, "lol!");
                 return;
             }
-            System.out.println("opponent ip: "+user.getIpAddress());
-            System.out.println("opponent port: "+user.getPort());
-            sendPk = new DatagramPacket(send_buf, send_buf.length, user.getIpAddress(), user.getPort());
+            System.out.println("enemy ip: "+enemy.getIpAddress());
+            System.out.println("enemy port: "+enemy.getPort());
+            sendPk = new DatagramPacket(send_buf, send_buf.length, enemy.getIpAddress(), enemy.getPort());
             udpSocket.send(sendPk);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public void requestJoinRoom(String roomName){
+    public boolean isJoined(int roomID, User user){
+        Room aRoom = roomList.get(roomID);
+        ArrayList<User> aList = aRoom.getUserList();
+        for(User u: aList){
+            if(u.getUsername().equals(user.getUsername())) return true;
+        }
+        return false;
+    }
+    public void requestJoinRoom(int roomID){
         try{
-            int roomIdx = getRoomIndex(roomName);
-            Room aRoom = roomList.get(roomIdx);
-            ArrayList<User> aList = aRoom.getUserList();
-            User aUser = getUserByName(currentUser.getUsername());
-            if(aList.contains(aUser)) {
+            if(isJoined(roomID,currentUser)) {
                 JOptionPane.showMessageDialog(roomFrm, "You're currently in this room!");
                 return;
             }
-            String msg = "JOIN " + roomName + " " + currentUser.getUsername();
-            System.out.println("roomName: "+roomName);
+            int userID = loggedUsers.indexOf(getUserByName(currentUser.getUsername()));
+//            System.out.println("User id "+userID);
+            String msg = "JOIN " + roomID + " " + userID;
             byte[] send_buf = msg.getBytes();
-            User boss = roomList.get(roomIdx).getBoss();
-            System.out.println("boss name: "+boss.getUsername());
-            System.out.println("boss port: "+boss.getPort());
+            User boss = roomList.get(roomID).getBoss();
             sendPk = new DatagramPacket(send_buf, send_buf.length, boss.getIpAddress(), boss.getPort());
             udpSocket.send(sendPk);
         }catch(Exception ex){
@@ -182,43 +196,34 @@ public class Client {
             ex.printStackTrace();
         }
     }
-    public void deleteRoom(String roomName){
-        try{
-            User roomBoss = roomList.get(getRoomIndex(roomName)).getBoss();
-            System.out.println("boss: "+roomBoss.getUsername());
-            System.out.println("current user: "+currentUser.getUsername());
+    public void deleteRoom(int roomID){
+        try {
+            User roomBoss = roomList.get(roomID).getBoss();
             if(!roomBoss.getUsername().equals(currentUser.getUsername())){
                 JOptionPane.showMessageDialog(roomFrm, "You don't have permission");
                 return;
             }
-            roomList.remove(getRoomIndex(roomName));
+            roomList.remove(roomID);
             oos.reset();
             oos.writeObject("UPDATEROOMS");
             oos.writeObject(roomList);
-        }catch(Exception ex){
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
-    public int getRoomIndex(String roomName){
-        for(Room r: roomList){
-            if(r.getRoomName().equals(roomName)) return roomList.indexOf(r);
-        }
-        return -1;
-    }
-    public boolean addUserToRoom(String userName, String roomName){
-        int roomIdx = getRoomIndex(roomName);
-        Room aRoom = roomList.get(roomIdx);
+    
+    public boolean addUserToRoom(int userID, int roomID){
+        Room aRoom = roomList.get(roomID);
         if(aRoom.getStatus().contains("full")){
             JOptionPane.showMessageDialog(roomFrm, "room full!");
             return false;
         }
         ArrayList<User> aList = aRoom.getUserList();
-        User aUser = getUserByName(userName);
+        User aUser = loggedUsers.get(userID);
         aList.add(aUser);
         aRoom.setUserList(aList);
-        roomList.set(getRoomIndex(roomName), aRoom);
+        roomList.set(roomID, aRoom);
         return true;
-//        System.out.println("server: "+roomList.get(roomIdx).getStatus());
     }
     public void sendMsg(String msg, InetAddress address, int port){
         try {
@@ -231,15 +236,13 @@ public class Client {
         }
     }
     //send msg to all room member
-    public void sendRoomMsg(String msg, String roomName) throws InterruptedException{
-        Room aRoom = roomList.get(getRoomIndex(roomName));
+    public void sendRoomMsg(String msg, int roomID) throws InterruptedException{
+        Room aRoom = roomList.get(roomID);
         ArrayList<User> roomMembers = aRoom.getUserList();
         System.out.println("current room size: "+roomMembers.size());
         for(User user: roomMembers){
-//            System.out.println(user.getUsername());
-//            System.out.println(user.getIpAddress()+ "/"+ user.getPort());
             sendMsg(msg, user.getIpAddress(), user.getPort());
-            Thread.sleep(1000);
+            Thread.sleep(500);
         }
     }
     
@@ -261,43 +264,47 @@ public class Client {
                         battleGround.setVisible(true);
 //                        roomFrm.setVisible(false);
                         roomFrm.dispose();
+                        udpSocket.close();
                         break;
                     case "SOLO":
                         String ans;
-                        int input = JOptionPane.showConfirmDialog(roomFrm, "Do you want to play with "+ data[1], "Confirm battle request", JOptionPane.OK_CANCEL_OPTION);
+                        String rivalName = data[1].trim();
+                        int input = JOptionPane.showConfirmDialog(roomFrm, "Do you want to play with "+ rivalName, "Confirm battle request", JOptionPane.OK_CANCEL_OPTION);
                         if(input==JOptionPane.OK_OPTION) {
                             ans = "REPSOLO OK";
-                            battleGround= new BattleGround(this);
+                            battleGround = new BattleGround(this);
                             battleGround.setVisible(true);
-//                            roomFrm.setVisible(false);
                             roomFrm.dispose();
-                            System.out.println("opponent battleground");
+                            udpSocket.close();
                         }else ans = "REPSOLO CANCEL";
                         //reply
                         sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "JOIN":
-                        String roomName = data[1].trim();
-                        String userName = data[2].trim();
+                        int roomID = Integer.parseInt(data[1].trim());
+                        int userID = Integer.parseInt(data[2].trim());
                         System.out.println("Join request");
-                        System.out.println("userName " + userName);
-                        System.out.println("roomName " + roomName);
+                        System.out.println("userID " + userID);
+                        System.out.println("roomID " + roomID);
 //                        System.out.println("current user "+ currentUser.getUsername());
-                        if(userName.equals(currentUser.getUsername())){
-                            addUserToRoom(userName, roomName);
-                            System.out.println("Join your room");
-                            System.out.println("current room status: "+roomList.get(getRoomIndex(roomName)).getStatus());
+                        getOnlineUsers();
+                        if(loggedUsers.get(userID).getUsername().equals(currentUser.getUsername())){
+                            addUserToRoom(userID, roomID);
+                            System.out.println("boss joined room");
+                            System.out.println("current room status: "+roomList.get(roomID).getStatus());
                         }else{
+                            String roomName = roomList.get(roomID).getRoomName();
+                            String userName = loggedUsers.get(userID).getUsername();
                             input = JOptionPane.showConfirmDialog(roomFrm, "Do you want "+userName+" to join room "+roomName,"Confirm join request",JOptionPane.OK_CANCEL_OPTION);
-                            if(input==JOptionPane.OK_OPTION && addUserToRoom(userName, roomName)){
+                            if(input==JOptionPane.OK_OPTION && addUserToRoom(userID, roomID)){
                                 ans = "REPJOIN OK";
                             }else ans = "REPJOIN CANCEL";
                             sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
-                            System.out.println("current room status: "+roomList.get(getRoomIndex(roomName)).getStatus());
+                            System.out.println("current room status: "+roomList.get(roomID).getStatus());
                         }
-                        if (roomList.get(getRoomIndex(roomName)).getStatus().contains("full")) {
+                        if (roomList.get(roomID).getStatus().contains("full")) {
                             System.out.println("room full!");
-                            sendRoomMsg("START", roomName);
+                            sendRoomMsg("START", roomID);
                         }
                         roomFrm.updateTbRoom(roomList);
                         oos.reset();
@@ -306,7 +313,7 @@ public class Client {
                         
                         break;
                     case "REPJOIN":
-                        String msg = data[1];
+                        String msg = data[1].trim();
                         if(msg.contains("OK")){
                             JOptionPane.showMessageDialog(roomFrm, "wait for battle!");
                             roomFrm.updateTbRoom(getRooms());
@@ -315,34 +322,35 @@ public class Client {
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         break;
                     case "REPSOLO":
-                        msg = data[1];
+                        msg = data[1].trim();
                         if(msg.contains("OK")){
                             battleGround = new BattleGround(this);
                             battleGround.setVisible(true);
 //                            roomFrm.setVisible(false);
                             roomFrm.dispose();
+                            udpSocket.close();;
                         }else{
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         }
                         break;
+                    case "BUSY":
+                        JOptionPane.showMessageDialog(roomFrm, "opponent is busy!");
                     default:
                         break;
                 }
+               
             }catch(Exception ex){
                 ex.printStackTrace();
+            } finally {
+                if (udpSocket.isClosed()) {
+                    System.out.println("closed udp socket");
+//                    sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+                    break;
+                }
             }
         }
     }
-    public User getUserByName(String username){
-        User user = null;
-        for(User u: loggedUsers){
-            if(u.getUsername().equals(username)){
-                user = u;
-                break;
-            }
-        }
-        return user;
-    }
+   
     public ArrayList<User> getOnlineUsers(){
         try {
             oos.writeObject("GETONLINEUSERS");

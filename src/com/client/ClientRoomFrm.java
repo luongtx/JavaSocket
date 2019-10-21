@@ -22,10 +22,12 @@ public class ClientRoomFrm extends javax.swing.JFrame {
      */
     Client client;
     DefaultTableModel mdtbRoom;
+//    public static ClientRoomFrm roomFrm;
     public ClientRoomFrm(Client client) {
 //        client.listenBattleRequest();
         initComponents();
         this.client = client;
+//        roomFrm = this;
         mdtbRoom = (DefaultTableModel) tbRoom.getModel();
         this.addWindowListener(new WindowsClosedListener());
         lbUser.setText(client.getCurrentUser().getUsername());
@@ -61,7 +63,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         tbRoom = new javax.swing.JTable();
         btnDeleteRoom = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         btnRefresh.setBackground(new java.awt.Color(0, 255, 255));
         btnRefresh.setText("Refesh");
@@ -238,12 +240,12 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     }
     private void btnCombatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCombatActionPerformed
         // TODO add your handling code here:\
-        String opponent = lstUsers.getSelectedItem();
-        if(opponent==null) {
+        int opponentID = lstUsers.getSelectedIndex();
+        if(opponentID==-1) {
             JOptionPane.showMessageDialog(rootPane, "select an opponent!");
             return;
         }
-        client.requestSolo(opponent);
+        client.requestSolo(opponentID);
     }//GEN-LAST:event_btnCombatActionPerformed
 
     private void lbLogoutMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lbLogoutMouseClicked
@@ -278,27 +280,23 @@ public class ClientRoomFrm extends javax.swing.JFrame {
 
     private void btnJoinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnJoinActionPerformed
         // TODO add your handling code here:
-        int row = -1;
-        row = tbRoom.getSelectedRow();
-        if(row==-1) {
+        int roomID = tbRoom.getSelectedRow();
+        if(roomID==-1) {
             JOptionPane.showMessageDialog(null, "Please select a room");
             return;
         }
-        String roomName = (String) tbRoom.getValueAt(row, 0);
 //        System.out.println(roomName);
-        client.requestJoinRoom(roomName);
+        client.requestJoinRoom(roomID);
     }//GEN-LAST:event_btnJoinActionPerformed
 
     private void btnDeleteRoomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteRoomActionPerformed
         // TODO add your handling code here:
-        int row = -1;
-        row = tbRoom.getSelectedRow();
-        if(row==-1) {
+        int roomID = tbRoom.getSelectedRow();
+        if(roomID==-1) {
             JOptionPane.showMessageDialog(rootPane, "Please select a room");
             return;
         }
-        String roomName = (String) tbRoom.getValueAt(row, 0);
-        client.deleteRoom(roomName);
+        client.deleteRoom(roomID);
         updateTbRoom(Client.roomList);
     }//GEN-LAST:event_btnDeleteRoomActionPerformed
 
@@ -306,10 +304,9 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         // TODO add your handling code here:
         if(evt.getClickCount()==2){
             System.out.println("double click");
-            int row = tbRoom.getSelectedRow();
-            String roomName = tbRoom.getValueAt(row, 0).toString();
-            System.out.println(roomName);
-            Room room = client.getRooms().get(client.getRoomIndex(roomName));
+            int roomID = tbRoom.getSelectedRow();
+            System.out.println(client.getRooms().get(roomID).getRoomName());
+            Room room = client.getRooms().get(roomID);
             System.out.println(room.getBoss().getUsername());
             new RoomInfoFrm(room).setVisible(true);
         }

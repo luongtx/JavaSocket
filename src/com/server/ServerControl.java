@@ -121,9 +121,24 @@ public final class ServerControl {
                     case "LOGOUT":
                         try{
                             user = (User) ois.readObject();
-                            user.setLogin(false);
                             onlineUsers.remove(getUserIndex(user));
                             System.out.println("online: " + onlineUsers.size());
+                            //update roomList
+                            ArrayList<User> listUser;
+                            try{
+                                for(Room r: roomList){
+                                    if(r.getBoss().getUsername().equals(user.getUsername())) roomList.remove(r);
+                                    listUser = r.getUserList();
+                                    for(User u: listUser){
+                                        if(u.getUsername().equals(user.getUsername())) {
+                                            listUser.remove(u);
+                                        }
+                                    }
+                                    r.setUserList(listUser);
+                                }
+                            }catch(Exception ex){
+                                
+                            }
                         }catch(Exception ex){
                             ex.printStackTrace();
                         }

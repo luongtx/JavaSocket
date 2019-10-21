@@ -26,9 +26,6 @@ public class User implements Serializable{
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        win = 0;
-        lose = 0;
-        score = 0;
     }
 
     public User(String username, String password, int win, int lose, int score) {

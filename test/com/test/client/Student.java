@@ -12,10 +12,10 @@ package com.test.client;
 public class Student {
     private int id;
     private String name;
-    public int numberofStd = 1;
+    public int numberofStd = 1;;
     public Student(String name){
         this.name = name;
-        id = numberofStd++;
+        id = 1;
     }
     public int getId() {
         return id;

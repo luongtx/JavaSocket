@@ -5,18 +5,19 @@
  */
 package com.test.client;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author luongtx
  */
 public class Test {
     public static void main(String[] args) {
-        Student std1 = new Student("Luong");
-        std1.setNumberofStd(15);
-        System.out.println(std1.getId());
-        Student std2 = new Student("ha");
-        System.out.println(std2.getId());
-        Student std3 = new Student("khiem");
-        System.out.println(std3.getId());
+        ArrayList<Student> stdList = new ArrayList<>();
+        stdList.add(new Student("Luong"));
+        stdList.add(new Student("khiem"));
+        stdList.add(new Student("kiem"));
+        stdList.remove(new Student("Luong"));
+        System.out.println(stdList.size());
     }
 }
