@@ -37,7 +37,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     private class WindowsClosedListener extends WindowAdapter{
         @Override
         public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-            client.logout();
+//            client.logout();
         }
     }
     /**

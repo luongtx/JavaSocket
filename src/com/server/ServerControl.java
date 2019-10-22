@@ -13,6 +13,9 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.util.ArrayList;
 import com.client.User;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  *
@@ -27,10 +30,15 @@ public final class ServerControl {
     private ServerDAO dao;
     private ArrayList<User> onlineUsers = new ArrayList<>();
     private ArrayList<Room> roomList = new ArrayList<>();
+    private ArrayList<Player> players = new ArrayList<>();
     private ServerStartFrm startFrm;
+    private Protocol protocol;
+    private boolean running = true;
     public ServerControl() {
         dao = new ServerDAO();
         dbConn = dao.getConnection();
+        protocol = new Protocol();
+        
         initUI();
         listenning(serverPort);
        
@@ -44,12 +52,12 @@ public final class ServerControl {
             //create(bind) server socket to listenning client on specified port
             myServer = new ServerSocket(portNumber);
             System.out.println("Server is listenning...");
-            //to serve multiple clients
+            //to serve multiple players
             while (true) {
                 try {
                     //accept a client connection request
                     socketConn = myServer.accept();
-                    System.out.println("server accept request");
+                    System.out.println("server accept client connection");
                     ClientHandler clientHandler = new ClientHandler(socketConn);
                     clientHandler.start();
                 } catch (Exception ex) {
@@ -66,12 +74,15 @@ public final class ServerControl {
         Socket conn;
         ObjectInputStream ois;
         ObjectOutputStream oos;
-
+        DataInputStream dis;
+        DataOutputStream dos;
         public ClientHandler(Socket conn) {
             this.conn = conn;
             try{
                 ois = new ObjectInputStream(conn.getInputStream());
                 oos = new ObjectOutputStream(conn.getOutputStream());
+                dis = new DataInputStream(conn.getInputStream());
+                dos = new DataOutputStream(conn.getOutputStream());
             }catch(Exception ex){
                 ex.printStackTrace();
             }
@@ -159,13 +170,97 @@ public final class ServerControl {
                         System.out.println("number of rooms: "+roomList.size());
                         oos.writeObject(roomList);
                         break;
+                    case "START":
+                        System.out.println("start game");
+                        processClientGame();
+//                        oos.write;
+                        break;
                     default:
                         break;
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
+                
             }
         }
+        public void processClientGame() {
+            while (running) {
+                String sentence = "";
+                try {
+                    System.out.println("[listening player]");
+                    sentence = dis.readUTF();
+                    System.out.println("[accept player]");
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    break;
+                }
+
+                System.out.println(sentence);
+                if (sentence.startsWith("Hello")) {
+                    int pos = sentence.indexOf(',');
+                    int x = Integer.parseInt(sentence.substring(5, pos));
+                    int y = Integer.parseInt(sentence.substring(pos + 1, sentence.length()));
+
+                    sendToClient(protocol.IDPacket(players.size() + 1));
+                    try {
+                        BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
+                        sendAllClients(dos);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    //add client to client list
+                    players.add(new Player(dos, x, y, 1));
+                    System.out.println(players.size());
+                } else if (sentence.startsWith("Update")) {
+                    int pos1 = sentence.indexOf(',');
+                    int pos2 = sentence.indexOf('-');
+                    int pos3 = sentence.indexOf('|');
+                    int x = Integer.parseInt(sentence.substring(6, pos1));
+                    int y = Integer.parseInt(sentence.substring(pos1 + 1, pos2));
+                    int dir = Integer.parseInt(sentence.substring(pos2 + 1, pos3));
+                    int id = Integer.parseInt(sentence.substring(pos3 + 1, sentence.length()));
+                    System.out.println("id: "+id);
+                    if (players.get(id - 1) != null) {
+                        players.get(id - 1).setPosX(x);
+                        players.get(id - 1).setPosY(y);
+                        players.get(id - 1).setDirection(dir);
+                        try {
+                            BroadCastMessage(sentence);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                } else if (sentence.startsWith("Shot")) {
+                    try {
+                        BroadCastMessage(sentence);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                } else if (sentence.startsWith("Remove")) {
+                    int id = Integer.parseInt(sentence.substring(6));
+
+                    try {
+                        BroadCastMessage(sentence);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    players.set(id - 1, null);
+                } else if (sentence.startsWith("Exit")) {
+                    int id = Integer.parseInt(sentence.substring(4));
+
+                    try {
+                        BroadCastMessage(sentence);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    if (players.get(id - 1) != null) {
+                        players.set(id - 1, null);
+                    }
+                }
+            }
+        }
+        
         private boolean checkOnline(User cUser){
             for(User user: onlineUsers){
                 if(user.getUsername().equals(cUser.getUsername())) return true;
@@ -181,9 +276,86 @@ public final class ServerControl {
             }
             return -1;
         }
+        public void sendToClient(String message) {
+            if (message.equals("exit")) {
+                System.exit(0);
+            } else {
+                try {
+                    dos.writeUTF(message);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        public void BroadCastMessage(String mess) throws IOException {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i) != null) {
+                    players.get(i).getWriterStream().writeUTF(mess);
+                }
+            }
+        }
+
+        //send to all client current tank state
+
+        public void sendAllClients(DataOutputStream writer) {
+            int x, y, dir;
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i) != null) {
+                    x = players.get(i).getX();
+                    y = players.get(i).getY();
+                    dir = players.get(i).getDir();
+                    try {
+                        writer.writeUTF(protocol.NewClientPacket(x, y, dir, i + 1));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        }
     }
+     
     public ArrayList<User> getOnlineUsers(){
         return onlineUsers;
+    }
+    public class Player {
+
+        DataOutputStream writer;
+        int posX, posY, direction;
+
+        public Player(DataOutputStream writer, int posX, int posY, int direction) {
+            this.writer = writer;
+            this.posX = posX;
+            this.posY = posY;
+            this.direction = direction;
+        }
+
+        public void setPosX(int x) {
+            posX = x;
+        }
+
+        public void setPosY(int y) {
+            posY = y;
+        }
+
+        public void setDirection(int dir) {
+            direction = dir;
+        }
+
+        public DataOutputStream getWriterStream() {
+            return writer;
+        }
+
+        public int getX() {
+            return posX;
+        }
+
+        public int getY() {
+            return posY;
+        }
+
+        public int getDir() {
+            return direction;
+        }
     }
 }
 

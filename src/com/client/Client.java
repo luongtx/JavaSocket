@@ -5,6 +5,8 @@
  */
 package com.client;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,6 +28,9 @@ public class Client {
     private Socket mySocket;
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
+    private DataInputStream dis;
+    private DataOutputStream dos;
+    private Protocol protocol;
     private static String serverAddress = "localhost";
     private static int serverPort = 7777;
     private DatagramSocket udpSocket;
@@ -35,17 +40,18 @@ public class Client {
     public static ArrayList<Room> roomList;
     private ClientLoginFrm loginFrm;
     private ClientRoomFrm roomFrm;
-    private BattleGround battleGround;
+    private ClientPlayGUI mainGUI;
     public Client(){
         currentUser = new User();
+        protocol = new Protocol();
         connectServer();
         openUDPSocket();
-//        listenRequest();
+        initUI();
+        listenRequest();
     }
     public void initUI(){
         loginFrm = new ClientLoginFrm(this);
         loginFrm.setVisible(true);
-        listenRequest();
     }
     public void connectServer(){
         if(mySocket==null){
@@ -74,6 +80,8 @@ public class Client {
             try{
                 oos.close();
                 ois.close();
+                dos.close();
+                dis.close();
                 mySocket.close();
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -260,11 +268,12 @@ public class Client {
                 switch(req){
                     case "START":
                         System.out.println("trigger start");
-                        battleGround = new BattleGround(this);
-                        battleGround.setVisible(true);
+                        oos.writeObject("START");
+                        mainGUI = new ClientPlayGUI(this);
+                        mainGUI.setVisible(true);
 //                        roomFrm.setVisible(false);
                         roomFrm.dispose();
-                        udpSocket.close();
+                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "SOLO":
                         String ans;
@@ -272,10 +281,12 @@ public class Client {
                         int input = JOptionPane.showConfirmDialog(roomFrm, "Do you want to play with "+ rivalName, "Confirm battle request", JOptionPane.OK_CANCEL_OPTION);
                         if(input==JOptionPane.OK_OPTION) {
                             ans = "REPSOLO OK";
-                            battleGround = new BattleGround(this);
-                            battleGround.setVisible(true);
+                            oos.writeObject("START");
+                            mainGUI = new ClientPlayGUI(this);
+                            mainGUI.setVisible(true);
                             roomFrm.dispose();
-                            udpSocket.close();
+                            Thread.sleep(1000);
+//                            sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else ans = "REPSOLO CANCEL";
                         //reply
                         sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
@@ -310,7 +321,6 @@ public class Client {
                         oos.reset();
                         oos.writeObject("UPDATEROOMS");
                         oos.writeObject(roomList);
-                        
                         break;
                     case "REPJOIN":
                         String msg = data[1].trim();
@@ -324,17 +334,19 @@ public class Client {
                     case "REPSOLO":
                         msg = data[1].trim();
                         if(msg.contains("OK")){
-                            battleGround = new BattleGround(this);
-                            battleGround.setVisible(true);
+                            oos.writeObject("START");
+                            mainGUI = new ClientPlayGUI(this);
+                            mainGUI.setVisible(true);
 //                            roomFrm.setVisible(false);
                             roomFrm.dispose();
-                            udpSocket.close();;
+//                            sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else{
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         }
                         break;
                     case "BUSY":
                         JOptionPane.showMessageDialog(roomFrm, "opponent is busy!");
+                        break;
                     default:
                         break;
                 }
@@ -349,6 +361,27 @@ public class Client {
                 }
             }
         }
+    }
+    public void register(int posX, int posY) throws IOException {
+        dos = new DataOutputStream(mySocket.getOutputStream());
+
+        dos.writeUTF(protocol.RegisterPacket(posX, posY));
+
+    }
+    //send msg to server
+    public void sendToServer(String message) {
+        if (message.equals("exit")) {
+            System.exit(0);
+        } else {
+            try {
+                System.out.println(message);
+                dos = new DataOutputStream(mySocket.getOutputStream());
+                dos.writeUTF(message);
+            } catch (IOException ex) {
+
+            }
+        }
+
     }
    
     public ArrayList<User> getOnlineUsers(){
@@ -394,5 +427,9 @@ public class Client {
 //        }
 //        return inet;
 //    }
+
+    public Socket getSocket() {
+        return mySocket;
+    }
     
 }
