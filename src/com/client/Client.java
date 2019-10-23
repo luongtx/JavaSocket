@@ -276,9 +276,8 @@ public class Client {
                         oos.writeObject("START");
                         mainGUI = new ClientPlayGUI(this);
                         mainGUI.setVisible(true);
-//                        roomFrm.setVisible(false);
                         roomFrm.dispose();
-                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+//                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "SOLO":
                         String ans;
@@ -291,10 +290,10 @@ public class Client {
                             mainGUI.setVisible(true);
                             roomFrm.dispose();
                             Thread.sleep(1000);
-//                            sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else ans = "REPSOLO CANCEL";
                         //reply
                         sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
+//                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "JOIN":
                         int roomID = Integer.parseInt(data[1].trim());
@@ -342,7 +341,6 @@ public class Client {
                             oos.writeObject("START");
                             mainGUI = new ClientPlayGUI(this);
                             mainGUI.setVisible(true);
-//                            roomFrm.setVisible(false);
                             roomFrm.dispose();
 //                            sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else{
@@ -383,7 +381,7 @@ public class Client {
                 dos = new DataOutputStream(mySocket.getOutputStream());
                 dos.writeUTF(message);
             } catch (IOException ex) {
-
+                ex.printStackTrace();
             }
         }
 

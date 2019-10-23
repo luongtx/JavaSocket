@@ -239,7 +239,7 @@ public final class ServerControl {
                     }
                 } else if (sentence.startsWith("Remove")) {
                     int id = Integer.parseInt(sentence.substring(6));
-
+//                    System.out.println("died tank: "+id);
                     try {
                         BroadCastMessage(sentence);
                     } catch (IOException ex) {
@@ -296,7 +296,7 @@ public final class ServerControl {
             }
         }
 
-        //send to all client current tank state
+        //send to all client current tanks state
 
         public void sendAllClients(DataOutputStream writer) {
             int x, y, dir;
@@ -319,7 +319,7 @@ public final class ServerControl {
         return onlineUsers;
     }
     public class Player {
-
+        
         DataOutputStream writer;
         int posX, posY, direction;
 
