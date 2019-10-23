@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.client;
+package com.client.lobby;
 
+import com.client.User;
 import java.io.Serializable;
 import java.util.ArrayList;
 

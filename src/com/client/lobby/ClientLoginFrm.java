@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.client;
+package com.client.lobby;
 
+import com.client.User;
+import com.client.Client;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import javax.swing.JOptionPane;

@@ -5,7 +5,7 @@
  */
 package com.server;
 
-import com.client.Room;
+import com.client.lobby.Room;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -191,7 +191,7 @@ public final class ServerControl {
                     sentence = dis.readUTF();
                     System.out.println("[accept player]");
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    System.out.println("client closed!");
                     break;
                 }
 
@@ -257,6 +257,7 @@ public final class ServerControl {
                     if (players.get(id - 1) != null) {
                         players.set(id - 1, null);
                     }
+//                    break;
                 }
             }
         }

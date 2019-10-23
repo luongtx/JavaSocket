@@ -5,6 +5,11 @@
  */
 package com.client;
 
+import com.client.lobby.ClientLoginFrm;
+import com.client.lobby.ClientRoomFrm;
+import com.client.lobby.Room;
+import com.client.playground.ClientPlayGUI;
+import com.client.playground.Protocol;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
