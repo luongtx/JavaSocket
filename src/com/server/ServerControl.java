@@ -5,7 +5,7 @@
  */
 package com.server;
 
-import com.client.lobby.Room;
+import com.client.Room;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -34,19 +34,20 @@ public final class ServerControl {
     private ServerStartFrm startFrm;
     private Protocol protocol;
     private boolean running = true;
+
     public ServerControl() {
         dao = new ServerDAO();
         dbConn = dao.getConnection();
         protocol = new Protocol();
-        
         initUI();
         listenning(serverPort);
-       
     }
-    public void initUI(){
+
+    public void initUI() {
         startFrm = new ServerStartFrm(this);
         startFrm.setVisible(true);
     }
+
     public void listenning(int portNumber) {
         try {
             //create(bind) server socket to listenning client on specified port
@@ -63,19 +64,22 @@ public final class ServerControl {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     break;
-                } 
+                }
             }
 
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
     class ClientHandler extends Thread {
+
         Socket conn;
         ObjectInputStream ois;
         ObjectOutputStream oos;
         DataInputStream dis;
         DataOutputStream dos;
+
         public ClientHandler(Socket conn) {
             this.conn = conn;
             try{
@@ -87,41 +91,51 @@ public final class ServerControl {
                 ex.printStackTrace();
             }
         }
+
         @Override
-        public void run(){
+        public void run() {
             String request = "";
             while (true) {
                 try {
-                    request = (String) ois.readObject();
+                    request = dis.readUTF();
                     handle(request);
                 } catch (Exception ex) {
                     System.out.println("Client closed!");
+                    ex.printStackTrace();
                     break;
                 }
             }
         }
-        public void handle(String request){
+
+        public void handle(String request) {
             try {
                 switch (request) {
                     case "LOGIN":
                         User user = (User) ois.readObject();
                         String status = "";
-                        if(dao.getUserAccount(user)) status = "OK";
-                        else status = "NOTFOUND";
-                        oos.writeObject(status);
-                        oos.flush();
-                        if(status.equals("OK")) {
+                        if (dao.getUserAccount(user)) {
+                            status = "OK";
+                        } else {
+                            status = "NOTFOUND";
+                        }
+                        dos.writeUTF(status);
+                        if (status.equals("OK")) {
                             System.out.println("username: " + user.getUsername());
-                            if(!checkOnline(user)) onlineUsers.add(user);
+                            if (!checkOnline(user)) {
+                                onlineUsers.add(user);
+                            }
                         }
                         break;
                     case "SIGNUP":
                         user = (User) ois.readObject();
 //                        System.out.println("username: " + user.getUsername());
                         status = "";
-                        if(dao.addUserAccount(user)) status = "OK";
-                        else status = "EXISTED";
-                        oos.writeObject(status);
+                        if (dao.addUserAccount(user)) {
+                            status = "OK";
+                        } else {
+                            status = "EXISTED";
+                        }
+                        dos.writeUTF(status);
                         oos.flush();
                         break;
                     case "GETONLINEUSERS":
@@ -130,153 +144,123 @@ public final class ServerControl {
                         oos.writeObject(onlineUsers);
                         break;
                     case "LOGOUT":
-                        try{
+                        try {
                             user = (User) ois.readObject();
                             onlineUsers.remove(getUserIndex(user));
                             System.out.println("online: " + onlineUsers.size());
                             //update roomList
                             ArrayList<User> listUser;
-                            try{
-                                for(Room r: roomList){
-                                    if(r.getBoss().getUsername().equals(user.getUsername())) roomList.remove(r);
+                            try {
+                                for (Room r : roomList) {
+                                    if (r.getBoss().getUsername().equals(user.getUsername())) {
+                                        roomList.remove(r);
+                                    }
                                     listUser = r.getUserList();
-                                    for(User u: listUser){
-                                        if(u.getUsername().equals(user.getUsername())) {
+                                    for (User u : listUser) {
+                                        if (u.getUsername().equals(user.getUsername())) {
                                             listUser.remove(u);
                                         }
                                     }
                                     r.setUserList(listUser);
                                 }
-                            }catch(Exception ex){
-                                
+                            } catch (Exception ex) {
+
                             }
-                        }catch(Exception ex){
+                        } catch (Exception ex) {
                             ex.printStackTrace();
                         }
                         break;
                     case "UPDATEROOMS":
                         roomList = (ArrayList<Room>) ois.readObject();
-                        System.out.println("number of rooms: "+roomList.size());
-                        for(Room room: roomList){
+                        System.out.println("number of rooms: " + roomList.size());
+                        for (Room room : roomList) {
                             System.out.println("[room info]");
-                            System.out.println("room name: "+room.getRoomName());
-                            System.out.println("room current status: "+room.getStatus());
+                            System.out.println("room name: " + room.getRoomName());
+                            System.out.println("room current status: " + room.getStatus());
 //                            ArrayList<User> users = room.getUserList();
 //                            for(User u: users) System.out.println(u.getUsername());
                         }
                         break;
                     case "GETROOMS":
                         oos.reset();
-                        System.out.println("number of rooms: "+roomList.size());
+                        System.out.println("number of rooms: " + roomList.size());
                         oos.writeObject(roomList);
                         break;
-                    case "START":
-                        System.out.println("start game");
-                        processClientGame();
-//                        oos.write;
+
+                    case "REGISTER":
+//                        dis = new DataInputStream(conn.getInputStream());
+                        String msg = dis.readUTF();
+                        String[] data = msg.split(",");
+                        int x = Integer.parseInt(data[0]);
+                        int y = Integer.parseInt(data[1]);
+//                        dos = new DataOutputStream(conn.getOutputStream());
+                        sendToClient(protocol.IDPacket(players.size() + 1));
+                        try {
+                            BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
+                            sendAllClients(dos);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                        players.add(new Player(dos, x, y, 1));
+                        System.out.println(players.size());
+                    case "UPDATE":
+//                        System.out.println("UPDATE");
+                        msg = dis.readUTF();
+                        System.out.println(msg);
+                        data = msg.split(",");
+                        x = Integer.parseInt(data[0]);
+                        y = Integer.parseInt(data[1]);
+                        int dir = Integer.parseInt(data[2]);
+                        int id = Integer.parseInt(data[3]);
+                        System.out.println("id: " + id);
+                        if (players.get(id - 1) != null) {
+                            players.get(id - 1).setPosX(x);
+                            players.get(id - 1).setPosY(y);
+                            players.get(id - 1).setDirection(dir);
+                            BroadCastMessage("Update"+msg);
+                        }
+                        break;
+                    case "SHOT":
+                        msg = dis.readUTF();
+                        System.out.println(msg);
+                        id = Integer.parseInt(msg);
+                        BroadCastMessage("Shot"+msg);
+                        break;
+                    case "REMOVE":
+                        msg = dis.readUTF();
+                        System.out.println(msg);
+                        id = Integer.parseInt(msg);
+                        BroadCastMessage("Remove"+msg);
+                        if (players.get(id - 1) != null) {
+                            players.set(id - 1, null);
+                            System.out.println("player died: "+id);
+                        }
+                        break;
+                    case "EXIT":
+                        msg = dis.readUTF();
+                        id = Integer.parseInt(msg);
+                        BroadCastMessage("Exit"+msg);
+                        if (players.get(id - 1) != null) {
+                            players.set(id - 1, null);
+                        }
                         break;
                     default:
                         break;
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                
+
             }
         }
-        public void processClientGame() {
-            while (running) {
-                String sentence = "";
-                try {
-                    System.out.println("[listening player]");
-                    sentence = dis.readUTF();
-                    System.out.println("[accept player]");
-                } catch (IOException ex) {
-                    System.out.println("client closed!");
-                    break;
-                }
 
-                System.out.println(sentence);
-                if (sentence.startsWith("Hello")) {
-                    int pos = sentence.indexOf(',');
-                    int x = Integer.parseInt(sentence.substring(5, pos));
-                    int y = Integer.parseInt(sentence.substring(pos + 1, sentence.length()));
-
-                    sendToClient(protocol.IDPacket(players.size() + 1));
-                    try {
-                        BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
-                        sendAllClients(dos);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    //add client to client list
-                    players.add(new Player(dos, x, y, 1));
-                    System.out.println(players.size());
-                } else if (sentence.startsWith("Update")) {
-                    int pos1 = sentence.indexOf(',');
-                    int pos2 = sentence.indexOf('-');
-                    int pos3 = sentence.indexOf('|');
-                    int x = Integer.parseInt(sentence.substring(6, pos1));
-                    int y = Integer.parseInt(sentence.substring(pos1 + 1, pos2));
-                    int dir = Integer.parseInt(sentence.substring(pos2 + 1, pos3));
-                    int id = Integer.parseInt(sentence.substring(pos3 + 1, sentence.length()));
-                    System.out.println("id: "+id);
-                    if (players.get(id - 1) != null) {
-                        players.get(id - 1).setPosX(x);
-                        players.get(id - 1).setPosY(y);
-                        players.get(id - 1).setDirection(dir);
-                        try {
-                            BroadCastMessage(sentence);
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-
-                } else if (sentence.startsWith("Shot")) {
-                    try {
-                        BroadCastMessage(sentence);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                } else if (sentence.startsWith("Remove")) {
-                    int id = Integer.parseInt(sentence.substring(6));
-//                    System.out.println("died tank: "+id);
-                    try {
-                        BroadCastMessage(sentence);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    players.set(id - 1, null);
-                } else if (sentence.startsWith("Exit")) {
-                    int id = Integer.parseInt(sentence.substring(4));
-
-                    try {
-                        BroadCastMessage(sentence);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    if (players.get(id - 1) != null) {
-                        players.set(id - 1, null);
-                    }
-//                    break;
+        public void BroadCastMessage(String mess) throws IOException {
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i) != null) {
+                    players.get(i).getWriterStream().writeUTF(mess);
                 }
             }
         }
-        
-        private boolean checkOnline(User cUser){
-            for(User user: onlineUsers){
-                if(user.getUsername().equals(cUser.getUsername())) return true;
-            }
-            return false;
-        }
-        private int getUserIndex(User user) {
-            int size = onlineUsers.size();
-            for (int i = 0; i < size; i++) {
-                if (onlineUsers.get(i).getUsername().equals(user.getUsername())) {
-                    return i;
-                }
-            }
-            return -1;
-        }
+
         public void sendToClient(String message) {
             if (message.equals("exit")) {
                 System.exit(0);
@@ -288,16 +272,8 @@ public final class ServerControl {
                 }
             }
         }
-        public void BroadCastMessage(String mess) throws IOException {
-            for (int i = 0; i < players.size(); i++) {
-                if (players.get(i) != null) {
-                    players.get(i).getWriterStream().writeUTF(mess);
-                }
-            }
-        }
 
         //send to all client current tanks state
-
         public void sendAllClients(DataOutputStream writer) {
             int x, y, dir;
             for (int i = 0; i < players.size(); i++) {
@@ -313,13 +289,33 @@ public final class ServerControl {
                 }
             }
         }
+
+        private boolean checkOnline(User cUser) {
+            for (User user : onlineUsers) {
+                if (user.getUsername().equals(cUser.getUsername())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private int getUserIndex(User user) {
+            int size = onlineUsers.size();
+            for (int i = 0; i < size; i++) {
+                if (onlineUsers.get(i).getUsername().equals(user.getUsername())) {
+                    return i;
+                }
+            }
+            return -1;
+        }
     }
-     
-    public ArrayList<User> getOnlineUsers(){
+
+    public ArrayList<User> getOnlineUsers() {
         return onlineUsers;
     }
-    public class Player {
-        
+
+    class Player {
+
         DataOutputStream writer;
         int posX, posY, direction;
 
@@ -359,4 +355,3 @@ public final class ServerControl {
         }
     }
 }
-

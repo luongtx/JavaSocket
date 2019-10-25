@@ -7,7 +7,7 @@ package com.client;
 
 import com.client.lobby.ClientLoginFrm;
 import com.client.lobby.ClientRoomFrm;
-import com.client.lobby.Room;
+import com.client.lobby.ClientTestFrm;
 import com.client.playground.ClientPlayGUI;
 import com.client.playground.Protocol;
 import java.io.DataInputStream;
@@ -46,6 +46,7 @@ public class Client {
     private ClientLoginFrm loginFrm;
     private ClientRoomFrm roomFrm;
     private ClientPlayGUI mainGUI;
+    private ClientTestFrm testFrm;
     public Client(){
         currentUser = new User();
         protocol = new Protocol();
@@ -62,9 +63,11 @@ public class Client {
         if(mySocket==null){
             try{
                 mySocket = new Socket(serverAddress, serverPort);
-//                System.out.println("local socket: "+mySocket.getLocalSocketAddress());
                 oos = new ObjectOutputStream(mySocket.getOutputStream());
                 ois = new ObjectInputStream(mySocket.getInputStream());
+                dos = new DataOutputStream(mySocket.getOutputStream());
+                dis = new DataInputStream(mySocket.getInputStream());
+//                System.out.println("local socket: "+mySocket.getLocalSocketAddress());
             }catch(Exception ex){
                 ex.printStackTrace();
             }
@@ -104,6 +107,7 @@ public class Client {
     public void login(User user) {
         try {
             loggedUsers = getOnlineUsers();
+            System.out.println("loggedUser size: "+loggedUsers.size());
             try{
                 if(getUserByName(user.getUsername())!=null) {
                     JOptionPane.showMessageDialog(roomFrm, "This account currently logged in!");
@@ -114,14 +118,19 @@ public class Client {
             }
             user.setIpAddress(currentUser.getIpAddress());
             user.setPort(currentUser.getPort());
-            oos.writeObject("LOGIN");
+            dos.writeUTF("LOGIN");
             oos.writeObject(user);
-            String msg = (String) ois.readObject();
+            String msg = dis.readUTF();
+            System.out.println("login stt: "+msg);
             if (msg.equals("OK")) {
                 currentUser = user;
                 System.out.println("user: "+currentUser.getUsername());
                 System.out.println("ip: "+currentUser.getIpAddress());
                 System.out.println("port: "+currentUser.getPort());
+//                System.out.println(getOnlineUsers().size());
+//                System.out.println(getRooms().size());
+//                roomFrm = new ClientRoomFrm(this);
+//                roomFrm.setVisible(true);
                 roomFrm = new ClientRoomFrm(this);
                 roomFrm.setVisible(true);
 //                loginFrm.setVisible(false);
@@ -136,7 +145,7 @@ public class Client {
     public void logout(){
         try{
             currentUser.setLogin(false);
-            oos.writeObject("LOGOUT");
+            dos.writeUTF("LOGOUT");
             oos.writeObject(currentUser);
         }catch(Exception ex){
             ex.printStackTrace();
@@ -145,9 +154,9 @@ public class Client {
     
     public boolean signUp(User user) {
         try {
-            oos.writeObject("SIGNUP");
+            dos.writeUTF("SIGNUP");
             oos.writeObject(user);
-            String msg = (String) ois.readObject();
+            String msg = (String) dis.readUTF();
             if (msg.equals("OK")) return true;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -202,7 +211,7 @@ public class Client {
         try{
             oos.reset();
             roomList.add(room);
-            oos.writeObject("UPDATEROOMS");
+            dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
 //            oos.flush();
         }catch(Exception ex){
@@ -218,7 +227,7 @@ public class Client {
             }
             roomList.remove(roomID);
             oos.reset();
-            oos.writeObject("UPDATEROOMS");
+            dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -238,7 +247,7 @@ public class Client {
         roomList.set(roomID, aRoom);
         return true;
     }
-    public void sendMsg(String msg, InetAddress address, int port){
+    public void sendToPeer(String msg, InetAddress address, int port){
         try {
             byte[] send_buf = msg.getBytes();
             sendPk = new DatagramPacket(send_buf, send_buf.length,address,port);
@@ -254,7 +263,7 @@ public class Client {
         ArrayList<User> roomMembers = aRoom.getUserList();
         System.out.println("current room size: "+roomMembers.size());
         for(User user: roomMembers){
-            sendMsg(msg, user.getIpAddress(), user.getPort());
+            sendToPeer(msg, user.getIpAddress(), user.getPort());
             Thread.sleep(500);
         }
     }
@@ -264,7 +273,7 @@ public class Client {
             try{
                 byte[] receive_buf = new byte[1024];
                 receivePk = new DatagramPacket(receive_buf, receive_buf.length);
-                System.out.println("[Listen request from other clients]");
+                System.out.println("[Listening battle request]");
                 udpSocket.receive(receivePk);
                 System.out.println("[Accept request]");
                 String receiveMsg = new String(receivePk.getData());
@@ -273,11 +282,11 @@ public class Client {
                 switch(req){
                     case "START":
                         System.out.println("trigger start");
-                        oos.writeObject("START");
+//                        oos.writeObject("START");
                         mainGUI = new ClientPlayGUI(this);
                         mainGUI.setVisible(true);
                         roomFrm.dispose();
-//                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+//                        sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "SOLO":
                         String ans;
@@ -285,15 +294,17 @@ public class Client {
                         int input = JOptionPane.showConfirmDialog(roomFrm, "Do you want to play with "+ rivalName, "Confirm battle request", JOptionPane.OK_CANCEL_OPTION);
                         if(input==JOptionPane.OK_OPTION) {
                             ans = "REPSOLO OK";
-                            oos.writeObject("START");
+//                            oos.writeObject("START");
                             mainGUI = new ClientPlayGUI(this);
                             mainGUI.setVisible(true);
                             roomFrm.dispose();
-                            Thread.sleep(1000);
+                            Thread.sleep(500);
                         }else ans = "REPSOLO CANCEL";
                         //reply
-                        sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
-//                        sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+                        sendToPeer(ans, receivePk.getAddress(), receivePk.getPort());
+                        udpSocket.close();
+                        System.out.println("stop listening battle request");
+//                        sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
                     case "JOIN":
                         int roomID = Integer.parseInt(data[1].trim());
@@ -314,7 +325,7 @@ public class Client {
                             if(input==JOptionPane.OK_OPTION && addUserToRoom(userID, roomID)){
                                 ans = "REPJOIN OK";
                             }else ans = "REPJOIN CANCEL";
-                            sendMsg(ans, receivePk.getAddress(), receivePk.getPort());
+                            sendToPeer(ans, receivePk.getAddress(), receivePk.getPort());
                             System.out.println("current room status: "+roomList.get(roomID).getStatus());
                         }
                         if (roomList.get(roomID).getStatus().contains("full")) {
@@ -323,7 +334,7 @@ public class Client {
                         }
                         roomFrm.updateTbRoom(roomList);
                         oos.reset();
-                        oos.writeObject("UPDATEROOMS");
+                        dos.writeUTF("UPDATEROOMS");
                         oos.writeObject(roomList);
                         break;
                     case "REPJOIN":
@@ -338,11 +349,13 @@ public class Client {
                     case "REPSOLO":
                         msg = data[1].trim();
                         if(msg.contains("OK")){
-                            oos.writeObject("START");
+//                            oos.writeObject("START");
                             mainGUI = new ClientPlayGUI(this);
                             mainGUI.setVisible(true);
                             roomFrm.dispose();
-//                            sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+                            udpSocket.close();
+                            System.out.println("stop listening battle request");
+//                            sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else{
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         }
@@ -359,27 +372,26 @@ public class Client {
             } finally {
                 if (udpSocket.isClosed()) {
                     System.out.println("closed udp socket");
-//                    sendMsg("BUSY", receivePk.getAddress(), receivePk.getPort());
+//                    sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                     break;
                 }
             }
         }
     }
     public void register(int posX, int posY) throws IOException {
-        dos = new DataOutputStream(mySocket.getOutputStream());
-
+//        mySocket = new Socket(serverAddress, serverPort);
+        dos.writeUTF("REGISTER");
         dos.writeUTF(protocol.RegisterPacket(posX, posY));
-
     }
     //send msg to server
-    public void sendToServer(String message) {
-        if (message.equals("exit")) {
+    public void sendToServer(String title, String data) {
+        if (title.equals("EXIT")) {
             System.exit(0);
         } else {
             try {
-                System.out.println(message);
-                dos = new DataOutputStream(mySocket.getOutputStream());
-                dos.writeUTF(message);
+                dos.writeUTF(title);
+                dos.writeUTF(data);
+                System.out.println(title+data);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -389,7 +401,7 @@ public class Client {
    
     public ArrayList<User> getOnlineUsers(){
         try {
-            oos.writeObject("GETONLINEUSERS");
+            dos.writeUTF("GETONLINEUSERS");
             loggedUsers = (ArrayList<User>) ois.readObject();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -398,8 +410,7 @@ public class Client {
     }
     public ArrayList<Room> getRooms(){
         try{
-            oos.reset();
-            oos.writeObject("GETROOMS");
+            dos.writeUTF("GETROOMS");
             roomList = (ArrayList<Room>) ois.readObject();
         }catch(IOException | ClassNotFoundException ex){
             ex.printStackTrace();
@@ -433,6 +444,9 @@ public class Client {
 
     public Socket getSocket() {
         return mySocket;
+    }
+    public DataInputStream getDataInputStream() {
+        return dis;
     }
     
 }

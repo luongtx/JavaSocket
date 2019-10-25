@@ -5,6 +5,7 @@
  */
 package com.client.lobby;
 
+import com.client.Room;
 import com.client.User;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;

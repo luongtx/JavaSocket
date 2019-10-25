@@ -5,6 +5,7 @@
  */
 package com.client.lobby;
 
+import com.client.Room;
 import com.client.User;
 import com.client.Client;
 import java.awt.event.WindowAdapter;
@@ -25,10 +26,10 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     Client client;
     DefaultTableModel mdtbRoom;
 //    public static ClientRoomFrm roomFrm;
-    public ClientRoomFrm(Client client) {
+    public ClientRoomFrm(Client client){
 //        client.listenBattleRequest();
-        initComponents();
         this.client = client;
+        initComponents();
 //        roomFrm = this;
         mdtbRoom = (DefaultTableModel) tbRoom.getModel();
         this.addWindowListener(new WindowsClosedListener());

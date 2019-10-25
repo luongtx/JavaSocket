@@ -48,8 +48,7 @@ public class InputManager implements KeyListener
             {
                 
                 tank.moveLeft();
-                
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                           tank.getYposition(),tank.getTankID(),tank.getDirection()));
                 
  
@@ -57,7 +56,7 @@ public class InputManager implements KeyListener
             else if(tank.getDirection()==4)
             {
                 tank.moveLeft();          
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                             tank.getYposition(),tank.getTankID(),tank.getDirection()));
             }
         }
@@ -66,14 +65,14 @@ public class InputManager implements KeyListener
             if(tank.getDirection()==1|tank.getDirection()==3)
             {
                 tank.moveRight();                        
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                            tank.getYposition(),tank.getTankID(),tank.getDirection()));
                     
             }
             else if(tank.getDirection()==2)
             {
                 tank.moveRight();
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                              tank.getYposition(),tank.getTankID(),tank.getDirection()));
             }
         }
@@ -82,14 +81,14 @@ public class InputManager implements KeyListener
             if(tank.getDirection()==2|tank.getDirection()==4)
             {
                 tank.moveForward();                            
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                           tank.getYposition(),tank.getTankID(),tank.getDirection()));
                         
             }
             else if(tank.getDirection()==1)
             {
                 tank.moveForward();
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                         tank.getYposition(),tank.getTankID(),tank.getDirection()));
                             
             }
@@ -100,22 +99,21 @@ public class InputManager implements KeyListener
             {
                 tank.moveBackward();
                
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                         tank.getYposition(),tank.getTankID(),tank.getDirection()));
                             
             }
             else if(tank.getDirection()==3)
             {
                 tank.moveBackward();
-                                    
-                client.sendToServer(new Protocol().UpdatePacket(tank.getXposition(),
+                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                                 tank.getYposition(),tank.getTankID(),tank.getDirection()));
                                 
             }
         }
         else if(e.getKeyCode()==KeyEvent.VK_SPACE)
         {
-            client.sendToServer(new Protocol().ShotPacket(tank.getTankID()));
+            client.sendToServer("SHOT",new Protocol().ShotPacket(tank.getTankID()));
             tank.shot();
         }
     }

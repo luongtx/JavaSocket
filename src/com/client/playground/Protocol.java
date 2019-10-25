@@ -27,28 +27,28 @@ public class Protocol {
     
     public String RegisterPacket(int x,int y)
     {
-        message="Hello"+x+","+y;
+        message=x+","+y;
         return message;
     }
     public String UpdatePacket(int x,int y,int id,int dir)
     {
-        message="Update"+x+","+y+"-"+dir+"|"+id;
+        message=+x+","+y+","+dir+","+id;
         return message;
     }
     public String ShotPacket(int id)
     {
-        message="Shot"+id;
+        message=Integer.toString(id);
         return message;
     }
     
     public String RemoveClientPacket(int id)
     {
-        message="Remove"+id;
+        message=Integer.toString(id);
         return message;
     }
     public String ExitMessagePacket(int id)
     {
-        message="Exit"+id;
+        message=Integer.toString(id);
         return message;
     }
 }

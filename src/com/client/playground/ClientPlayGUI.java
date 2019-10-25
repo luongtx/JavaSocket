@@ -37,6 +37,7 @@ public class ClientPlayGUI extends JFrame
     private static int score;
     
     int width=790,height=580;
+//    int width=500,height=300;
     boolean isRunning=true;
     private GameBoardPanel boardPanel;
     
@@ -78,13 +79,13 @@ public class ClientPlayGUI extends JFrame
             
         clientTank=new Tank();
         boardPanel=new GameBoardPanel(clientTank,client,false);
+        register();
         //content pane
         getContentPane().add(gameStatusPanel);
         getContentPane().add(boardPanel);        
         setVisible(true);
         boardPanel.setGameStatus(true);
         boardPanel.repaint();
-        register();
     }
     
     public static int getScore()
@@ -108,11 +109,13 @@ public class ClientPlayGUI extends JFrame
         @Override
         public void windowClosing(WindowEvent e) {
             // int response=JOptionPane.showConfirmDialog(this,"Are you sure you want to exit ?","Tanks 2D Multiplayer Game!",JOptionPane.YES_NO_OPTION);
-            client.sendToServer(new Protocol().ExitMessagePacket(clientTank.getTankID()));
+            client.sendToServer("EXIT",new Protocol().ExitMessagePacket(clientTank.getTankID()));
         }
     }
     public void register(){
         try {
+            System.out.println("pos x: "+clientTank.getXposition());
+            System.out.println("pos y: "+clientTank.getYposition());
             client.register(clientTank.getXposition(), clientTank.getYposition());
 //                 soundManger=new SoundManger();
             boardPanel.setGameStatus(true);
@@ -132,17 +135,16 @@ public class ClientPlayGUI extends JFrame
     
     public class ClientRecivingThread extends Thread
     {
-        Socket clientSocket;
+        Socket socket;
         DataInputStream reader;
-        public ClientRecivingThread(Socket clientSocket)
+        public ClientRecivingThread(Socket socket)
         {
-            this.clientSocket=clientSocket;
-            try {
-                reader=new DataInputStream(clientSocket.getInputStream());
-            } catch (IOException ex) {
+            this.socket=socket;
+            try{
+                 reader = new DataInputStream(socket.getInputStream());
+            }catch(Exception ex){
                 ex.printStackTrace();
             }
-            
         }
         @Override
         public void run()
@@ -151,97 +153,80 @@ public class ClientPlayGUI extends JFrame
             {
                 String sentence="";
                 try {
-                    sentence=reader.readUTF();                
+                    System.out.println("[receive msg from server]");
+                    sentence=reader.readUTF();
+                    System.out.println("[received msg]");
+                    if (sentence.startsWith("ID")) {
+                        int id = Integer.parseInt(sentence.substring(2));
+                        clientTank.setTankID(id);
+                        System.out.println("My ID= " + clientTank.getTankID());
+
+                    } else if (sentence.startsWith("NewClient")) {
+                        int pos1 = sentence.indexOf(',');
+                        int pos2 = sentence.indexOf('-');
+                        int pos3 = sentence.indexOf('|');
+                        int x = Integer.parseInt(sentence.substring(9, pos1));
+                        int y = Integer.parseInt(sentence.substring(pos1 + 1, pos2));
+                        int dir = Integer.parseInt(sentence.substring(pos2 + 1, pos3));
+                        int id = Integer.parseInt(sentence.substring(pos3 + 1, sentence.length()));
+                        if (id != clientTank.getTankID()) {
+                            boardPanel.registerNewTank(new Tank(x, y, dir, id));
+                        }
+                    } else if (sentence.startsWith("Update")) {
+                        System.out.println(sentence);
+                        String[] data = sentence.substring(6).split(",");
+
+                        int x = Integer.parseInt(data[0]);
+                        int y = Integer.parseInt(data[1]);
+                        int dir = Integer.parseInt(data[2]);
+                        int id = Integer.parseInt(data[3]);
+
+                        if (id != clientTank.getTankID()) {
+                            boardPanel.getTank(id).setXpoistion(x);
+                            boardPanel.getTank(id).setYposition(y);
+                            boardPanel.getTank(id).setDirection(dir);
+                            boardPanel.repaint();
+                        }
+
+                    } else if (sentence.startsWith("Shot")) {
+                        int id = Integer.parseInt(sentence.substring(4));
+
+                        if (id != clientTank.getTankID()) {
+                            boardPanel.getTank(id).Shot();
+                        }
+
+                    } else if (sentence.startsWith("Remove")) {
+                        int id = Integer.parseInt(sentence.substring(6));
+                        System.out.println("died: " + id);
+                        if (id == clientTank.getTankID()) {
+                            int response = JOptionPane.showConfirmDialog(null, "Sorry, You are loss. Do you want to try again ?", "Tanks 2D Multiplayer Game", JOptionPane.OK_CANCEL_OPTION);
+                            if (response == JOptionPane.OK_OPTION) {
+                                //client.closeAll();
+                                setVisible(false);
+                                dispose();
+                                new ClientPlayGUI(client);
+                            } else {
+                                System.exit(0);
+                            }
+                        } else {
+                            boardPanel.removeTank(id);
+                        }
+                    } else if (sentence.startsWith("Exit")) {
+                        int id = Integer.parseInt(sentence.substring(4));
+
+                        if (id != clientTank.getTankID()) {
+                            boardPanel.removeTank(id);
+                        }
+                    }
+                      
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }                
-               if(sentence.startsWith("ID"))
-               {
-                    int id=Integer.parseInt(sentence.substring(2));
-                    clientTank.setTankID(id);
-                    System.out.println("My ID= "+id);
-                    
-               }
-               else if(sentence.startsWith("NewClient"))
-               {
-                    int pos1=sentence.indexOf(',');
-                    int pos2=sentence.indexOf('-');
-                    int pos3=sentence.indexOf('|');
-                    int x=Integer.parseInt(sentence.substring(9,pos1));
-                    int y=Integer.parseInt(sentence.substring(pos1+1,pos2));
-                    int dir=Integer.parseInt(sentence.substring(pos2+1,pos3));
-                    int id=Integer.parseInt(sentence.substring(pos3+1,sentence.length()));
-                    if(id!=clientTank.getTankID())
-                        boardPanel.registerNewTank(new Tank(x,y,dir,id));
-               }   
-               else if(sentence.startsWith("Update"))
-               {
-                    int pos1=sentence.indexOf(',');
-                    int pos2=sentence.indexOf('-');
-                    int pos3=sentence.indexOf('|');
-                    int x=Integer.parseInt(sentence.substring(6,pos1));
-                    int y=Integer.parseInt(sentence.substring(pos1+1,pos2));
-                    int dir=Integer.parseInt(sentence.substring(pos2+1,pos3));
-                    int id=Integer.parseInt(sentence.substring(pos3+1,sentence.length()));
-                
-                    if(id!=clientTank.getTankID())
-                    {
-                        boardPanel.getTank(id).setXpoistion(x);
-                        boardPanel.getTank(id).setYposition(y);
-                        boardPanel.getTank(id).setDirection(dir);
-                        boardPanel.repaint();
-                    }
-                    
-               }
-               else if(sentence.startsWith("Shot"))
-               {
-                    int id=Integer.parseInt(sentence.substring(4));
-                
-                    if(id!=clientTank.getTankID())
-                    {
-                        boardPanel.getTank(id).Shot();
-                    }
-                    
-               }
-               else if(sentence.startsWith("Remove"))
-               {
-                  int id=Integer.parseInt(sentence.substring(6));
-                  System.out.println("died: "+id);
-                  if(id==clientTank.getTankID())
-                  {
-                        int response=JOptionPane.showConfirmDialog(null,"Sorry, You are loss. Do you want to try again ?","Tanks 2D Multiplayer Game",JOptionPane.OK_CANCEL_OPTION);
-                        if(response==JOptionPane.OK_OPTION)
-                        {
-                            //client.closeAll();
-                            setVisible(false);
-                            dispose();
-                            new ClientPlayGUI(client);
-                        }
-                        else
-                        {
-                            System.exit(0);
-                        }
-                  }
-                  else
-                  {
-                      boardPanel.removeTank(id);
-                  }
-               }
-               else if(sentence.startsWith("Exit"))
-               {
-                   int id=Integer.parseInt(sentence.substring(4));
-                  
-                  if(id!=clientTank.getTankID())
-                  {
-                      boardPanel.removeTank(id);
-                  }
-               }
-                      
+               
             }
-           
             try {
                 reader.close();
-                clientSocket.close();
+                socket.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
