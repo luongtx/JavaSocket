@@ -176,7 +176,7 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         @Override
         public void run()
         {
-            while(isRunning) 
+            while(isRunning==true) 
             {
                 String sentence="";
                 try {

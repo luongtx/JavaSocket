@@ -256,7 +256,6 @@ public final class ServerControl {
                             user1.setWin(user1.getWin()+1);
                             sendToClient("Win");
                             dao.updateResult(onlineUsers);
-                            players.clear();
                         }
                         break;
                     case "EXIT":

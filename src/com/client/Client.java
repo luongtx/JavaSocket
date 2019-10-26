@@ -111,8 +111,10 @@ public class Client {
             }catch(Exception ex){
                 
             }
-            user.setIpAddress(InetAddress.getLocalHost());
-            user.setPort(udpSocket.getLocalPort());
+            if(getUserByName(user.getUsername())==null){
+                user.setIpAddress(InetAddress.getLocalHost());
+                user.setPort(udpSocket.getLocalPort());
+            }
             dos.writeUTF("LOGIN");
             oos.writeObject(user);
             String msg = dis.readUTF();
@@ -200,10 +202,10 @@ public class Client {
     
     public void createRoom(Room room){
         try{
-            oos.reset();
             roomList.add(room);
             System.out.println("roomList size: "+roomList.size());
             dos.writeUTF("UPDATEROOMS");
+//            oos.reset();
             oos.writeObject(roomList);
 //            oos.flush();
         }catch(Exception ex){
@@ -218,9 +220,10 @@ public class Client {
                 return;
             }
             roomList.remove(roomID);
-            oos.reset();
+//            oos.reset();
             dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
+//            oos.flush();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -326,9 +329,10 @@ public class Client {
                             sendRoomMsg("START", roomID);
                         }
                         roomFrm.updateTbRoom(roomList);
-                        oos.reset();
                         dos.writeUTF("UPDATEROOMS");
+                        oos.reset();
                         oos.writeObject(roomList);
+//                        oos.flush();
                         break;
                     case "REPJOIN":
                         String msg = data[1].trim();
