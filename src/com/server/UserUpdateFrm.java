@@ -289,6 +289,7 @@ public class UserUpdateFrm extends javax.swing.JFrame {
 
     private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
         // TODO add your handling code here:
+        displayTable(serverDAO.getAllUsers());
         displayList(server.getOnlineUsers());
     }//GEN-LAST:event_btnRefreshActionPerformed
 

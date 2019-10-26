@@ -113,7 +113,8 @@ public final class ServerControl {
                     case "LOGIN":
                         User user = (User) ois.readObject();
                         String status = "";
-                        if (dao.getUserAccount(user)) {
+                        user = dao.getUserInfor(user);
+                        if (user!=null) {
                             status = "OK";
                         } else {
                             status = "NOTFOUND";
@@ -146,7 +147,7 @@ public final class ServerControl {
                     case "LOGOUT":
                         try {
                             user = (User) ois.readObject();
-                            onlineUsers.remove(getUserIndex(user));
+                            onlineUsers.remove(getUserIndex(user.getUsername()));
                             System.out.println("online: " + onlineUsers.size());
                             //update roomList
                             ArrayList<User> listUser;
@@ -188,12 +189,13 @@ public final class ServerControl {
                         break;
 
                     case "REGISTER":
-//                        dis = new DataInputStream(conn.getInputStream());
+                        dis = new DataInputStream(conn.getInputStream());
                         String msg = dis.readUTF();
                         String[] data = msg.split(",");
-                        int x = Integer.parseInt(data[0]);
-                        int y = Integer.parseInt(data[1]);
-//                        dos = new DataOutputStream(conn.getOutputStream());
+                        String userName = data[0];
+                        int x = Integer.parseInt(data[1]);
+                        int y = Integer.parseInt(data[2]);
+                        dos = new DataOutputStream(conn.getOutputStream());
                         sendToClient(protocol.IDPacket(players.size() + 1));
                         try {
                             BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
@@ -201,8 +203,9 @@ public final class ServerControl {
                         } catch (IOException ex) {
                             ex.printStackTrace();
                         }
-                        players.add(new Player(dos, x, y, 1));
+                        players.add(new Player(userName, dos, x, y, 1));
                         System.out.println(players.size());
+                        break;
                     case "UPDATE":
 //                        System.out.println("UPDATE");
                         msg = dis.readUTF();
@@ -229,11 +232,31 @@ public final class ServerControl {
                     case "REMOVE":
                         msg = dis.readUTF();
                         System.out.println(msg);
-                        id = Integer.parseInt(msg);
-                        BroadCastMessage("Remove"+msg);
+                        data = msg.split(" ");
+                        String playerName = data[0];
+                        User user1 = onlineUsers.get(getUserIndex(playerName));
+                        int score = user1.getScore();
+                        user1.setScore(score + 50);
+                        id = Integer.parseInt(data[1]);
+                        playerName = players.get(id-1).getPlayerName();
+                        User user2 = onlineUsers.get(getUserIndex(playerName));
+                        int lose = user2.getLose();
+                        user2.setLose(lose+1);
+                        BroadCastMessage("Remove"+id);
                         if (players.get(id - 1) != null) {
                             players.set(id - 1, null);
-                            System.out.println("player died: "+id);
+//                            System.out.println("player died: "+id);
+                        }
+                        int alive = 0;
+                        for(Player p: players){
+                            if(p!=null) alive ++;
+                        }
+                        System.out.println("alive: "+alive);
+                        if(alive==1) {
+                            user1.setWin(user1.getWin()+1);
+                            sendToClient("Win");
+                            dao.updateResult(onlineUsers);
+                            players.clear();
                         }
                         break;
                     case "EXIT":
@@ -241,7 +264,7 @@ public final class ServerControl {
                         id = Integer.parseInt(msg);
                         BroadCastMessage("Exit"+msg);
                         if (players.get(id - 1) != null) {
-                            players.set(id - 1, null);
+                            players.remove(id-1);
                         }
                         break;
                     default:
@@ -254,6 +277,7 @@ public final class ServerControl {
         }
 
         public void BroadCastMessage(String mess) throws IOException {
+            System.out.println("players size: "+players.size());
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i) != null) {
                     players.get(i).getWriterStream().writeUTF(mess);
@@ -299,10 +323,10 @@ public final class ServerControl {
             return false;
         }
 
-        private int getUserIndex(User user) {
+        private int getUserIndex(String username) {
             int size = onlineUsers.size();
             for (int i = 0; i < size; i++) {
-                if (onlineUsers.get(i).getUsername().equals(user.getUsername())) {
+                if (onlineUsers.get(i).getUsername().equals(username)) {
                     return i;
                 }
             }
@@ -313,19 +337,43 @@ public final class ServerControl {
     public ArrayList<User> getOnlineUsers() {
         return onlineUsers;
     }
-
     class Player {
-
+        String playerName;
         DataOutputStream writer;
         int posX, posY, direction;
-
-        public Player(DataOutputStream writer, int posX, int posY, int direction) {
+        int score = 0;
+        public Player(String playerName, DataOutputStream writer, int posX, int posY, int direction) {
+            this.playerName = playerName;
             this.writer = writer;
             this.posX = posX;
             this.posY = posY;
             this.direction = direction;
         }
 
+        public int getScore() {
+            return score;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
+        
+        public String getPlayerName() {
+            return playerName;
+        }
+
+        public void setPlayerName(String playerName) {
+            this.playerName = playerName;
+        }
+
+        public DataOutputStream getWriter() {
+            return writer;
+        }
+
+        public void setWriter(DataOutputStream writer) {
+            this.writer = writer;
+        }
+        
         public void setPosX(int x) {
             posX = x;
         }

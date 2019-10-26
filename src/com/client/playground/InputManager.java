@@ -31,7 +31,7 @@ public class InputManager implements KeyListener
     {
         this.client=ClientPlayGUI.client;
         this.tank=tank;
-        
+//        System.out.println("tank id: "+tank.getTankID());
     }
 
     @Override
@@ -64,6 +64,7 @@ public class InputManager implements KeyListener
         {
             if(tank.getDirection()==1|tank.getDirection()==3)
             {
+                System.out.println("tank id: "+tank.getTankID());
                 tank.moveRight();                        
                 client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
                            tank.getYposition(),tank.getTankID(),tank.getDirection()));

@@ -12,10 +12,19 @@ package com.test.client;
 public class Student {
     private int id;
     private String name;
+    private String tutorName = "michael";
     public int numberofStd = 1;;
     public Student(String name){
         this.name = name;
         id = 1;
+    }
+
+    public String getTutorName() {
+        return tutorName;
+    }
+
+    public void setTutorName(String tutorName) {
+        this.tutorName = tutorName;
     }
     public int getId() {
         return id;

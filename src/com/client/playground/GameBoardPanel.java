@@ -29,15 +29,13 @@ public class GameBoardPanel extends JPanel {
     private int height=523;
     private static ArrayList<Tank> tanks;
     private boolean gameStatus;
-    public GameBoardPanel(Tank tank,Client client, boolean gameStatus) 
+    public GameBoardPanel(Tank tank, Client client, boolean gameStatus) 
     {
         this.tank=tank;
         this.gameStatus=gameStatus;
         setSize(width,height);
         setBounds(-50,0,width,height);
-        addKeyListener(new InputManager(tank));
         setFocusable(true);
-        
         tanks=new ArrayList<>(100);
         
         for(int i=0;i<100;i++)
@@ -45,6 +43,12 @@ public class GameBoardPanel extends JPanel {
             tanks.add(null);
         }
    
+    }
+    public void addKeyListener(){
+        this.addKeyListener(new InputManager(tank));
+    }
+    public Tank getTank(){
+        return this.tank;
     }
     @Override
     public void paintComponent(Graphics gr) {

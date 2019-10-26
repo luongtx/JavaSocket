@@ -25,14 +25,14 @@ public class Protocol {
         
     }
     
-    public String RegisterPacket(int x,int y)
+    public String RegisterPacket(String name, int x, int y)
     {
-        message=x+","+y;
+        message=name+","+x+","+y;
         return message;
     }
     public String UpdatePacket(int x,int y,int id,int dir)
     {
-        message=+x+","+y+","+dir+","+id;
+        message=x+","+y+","+dir+","+id;
         return message;
     }
     public String ShotPacket(int id)

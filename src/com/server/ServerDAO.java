@@ -97,25 +97,37 @@ public class ServerDAO {
          }
          return userList;
      }
-    public boolean getUserAccount(User user) {
+    public User getUserInfor(User user) {
         String sql = "SELECT * FROM tblUser WHERE username = ? && password = ?";
         PreparedStatement ps;
         ResultSet rs;
-        boolean check = false;
         try {
             ps = dbConn.prepareStatement(sql);
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPassword());
             rs = ps.executeQuery();
             if (rs.next()) {
-                check = true;
-                user.setLogin(true);
+                user.setWin(rs.getInt("win"));
+                user.setLose(rs.getInt("lose"));
+                user.setScore(rs.getInt("score"));
             } else {
-                check = false;
+                user = null;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return check;
+        return user;
+    }
+    public void updateResult(ArrayList<User> userList) throws SQLException{
+        String sql = "UPDATE tblUser SET score = ?, win = ?, lose = ? WHERE username = ? ";
+        PreparedStatement ps;
+        ps = dbConn.prepareStatement(sql);
+        for(User user: userList){
+            ps.setInt(1, user.getScore());
+            ps.setInt(2,user.getWin());
+            ps.setInt(3, user.getLose());
+            ps.setString(4, user.getUsername());
+            ps.executeUpdate();
+        }
     }
 }

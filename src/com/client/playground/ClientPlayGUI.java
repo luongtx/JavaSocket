@@ -2,12 +2,16 @@ package com.client.playground;
 
 
 import com.client.Client;
+import com.client.lobby.ClientRoomFrm;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,14 +29,17 @@ import javax.swing.JPanel;
  *
  * @author Mohamed Talaat Saad
  */
-public class ClientPlayGUI extends JFrame
+public class ClientPlayGUI extends JFrame implements ActionListener
 {
     
     /** Creates a new instance of ClientPlayGUI */
     public static JPanel gameStatusPanel;
     private static JLabel scoreLabel;
+    private static JLabel playerLabel;
     public static Client client;
     private Tank clientTank;
+    private static JButton btnStart;
+    private static JButton btnBack;
     
     private static int score;
     
@@ -50,8 +57,7 @@ public class ClientPlayGUI extends JFrame
         setSize(width,height);
         setLocation(60,100);
         getContentPane().setBackground(Color.BLACK);
-        
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(null);
         addWindowListener(new WindowListener());
         //game status panel
@@ -60,29 +66,32 @@ public class ClientPlayGUI extends JFrame
         gameStatusPanel.setSize(200,140);
         gameStatusPanel.setBounds(560,50,200,140);
         gameStatusPanel.setLayout(null);
+        playerLabel = new JLabel("Player name: "+client.getCurrentUser().getUsername());
+        playerLabel.setBounds(10, 30, 150, 25);
+        playerLabel.setForeground(Color.blue);
         scoreLabel=new JLabel("Score : 0");
-        scoreLabel.setBounds(10,90,100,25);
+        scoreLabel.setBounds(10,60,100,25);
+        scoreLabel.setForeground(Color.green);
         gameStatusPanel.add(scoreLabel);
+        gameStatusPanel.add(playerLabel);
         
-        //player state panel
-//        gameStatusPanel=new JPanel();
-//        gameStatusPanel.setBackground(Color.YELLOW);
-//        gameStatusPanel.setSize(200,300);
-//        gameStatusPanel.setBounds(560,210,200,311);
-//        gameStatusPanel.setLayout(null);
-//       
-//        scoreLabel=new JLabel("Score : 0");
-//        scoreLabel.setBounds(10,90,100,25);
-//       
-//       
-//        gameStatusPanel.add(scoreLabel);
-            
+        btnStart = new JButton("Start");
+        btnStart.setBounds(600,300,90,30);
+        btnStart.addActionListener(this);
+        btnStart.setFocusable(false);      
+        btnBack = new JButton("Lobby");
+        btnBack.setBounds(600,350,90,30);
+        btnBack.addActionListener(this);
+        btnBack.setFocusable(false);
+        
         clientTank=new Tank();
         boardPanel=new GameBoardPanel(clientTank,client,false);
-        register();
+        boardPanel.addKeyListener();
         //content pane
         getContentPane().add(gameStatusPanel);
-        getContentPane().add(boardPanel);        
+        getContentPane().add(boardPanel);
+        getContentPane().add(btnStart);
+        getContentPane().add(btnBack);
         setVisible(true);
         boardPanel.setGameStatus(true);
         boardPanel.repaint();
@@ -112,26 +121,36 @@ public class ClientPlayGUI extends JFrame
             client.sendToServer("EXIT",new Protocol().ExitMessagePacket(clientTank.getTankID()));
         }
     }
-    public void register(){
-        try {
-            System.out.println("pos x: "+clientTank.getXposition());
-            System.out.println("pos y: "+clientTank.getYposition());
-            client.register(clientTank.getXposition(), clientTank.getYposition());
-//                 soundManger=new SoundManger();
-            boardPanel.setGameStatus(true);
-            boardPanel.repaint();
+    @Override
+    public void actionPerformed(ActionEvent e){
+        Object o = e.getSource();
+        if(o==btnStart){
+            btnStart.setEnabled(false);
             try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                System.out.println("pos x: "+clientTank.getXposition());
+                System.out.println("pos y: "+clientTank.getYposition());
+                client.register(clientTank.getXposition(), clientTank.getYposition());
+    //                 soundManger=new SoundManger();
+                boardPanel.setGameStatus(true);
+//                boardPanel.repaint();
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                new ClientRecivingThread(client.getSocket()).start();
+                boardPanel.setFocusable(true);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "The Server is not running, try again later!", "Tanks 2D Multiplayer Game", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("The Server is not running!");
             }
-            new ClientRecivingThread(client.getSocket()).start();
-            boardPanel.setFocusable(true);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "The Server is not running, try again later!", "Tanks 2D Multiplayer Game", JOptionPane.INFORMATION_MESSAGE);
-            System.out.println("The Server is not running!");
+        }else{
+            dispose();
+            Client.roomFrm.setVisible(true);
         }
+        
     }
+    
     
     public class ClientRecivingThread extends Thread
     {
@@ -142,6 +161,7 @@ public class ClientPlayGUI extends JFrame
             this.socket=socket;
             try{
                  reader = new DataInputStream(socket.getInputStream());
+                 System.out.println("reader: "+reader);
             }catch(Exception ex){
                 ex.printStackTrace();
             }
@@ -155,12 +175,12 @@ public class ClientPlayGUI extends JFrame
                 try {
                     System.out.println("[receive msg from server]");
                     sentence=reader.readUTF();
+                    System.out.println("sentence: "+sentence);
                     System.out.println("[received msg]");
                     if (sentence.startsWith("ID")) {
                         int id = Integer.parseInt(sentence.substring(2));
                         clientTank.setTankID(id);
-                        System.out.println("My ID= " + clientTank.getTankID());
-
+                        System.out.println("My ID= " + boardPanel.getTank().getTankID());
                     } else if (sentence.startsWith("NewClient")) {
                         int pos1 = sentence.indexOf(',');
                         int pos2 = sentence.indexOf('-');
@@ -199,23 +219,30 @@ public class ClientPlayGUI extends JFrame
                         int id = Integer.parseInt(sentence.substring(6));
                         System.out.println("died: " + id);
                         if (id == clientTank.getTankID()) {
-                            int response = JOptionPane.showConfirmDialog(null, "Sorry, You are loss. Do you want to try again ?", "Tanks 2D Multiplayer Game", JOptionPane.OK_CANCEL_OPTION);
-                            if (response == JOptionPane.OK_OPTION) {
-                                //client.closeAll();
-                                setVisible(false);
+                            int response = JOptionPane.showConfirmDialog(null, "You're lose!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
+                            if(response == JOptionPane.OK_OPTION){
                                 dispose();
-                                new ClientPlayGUI(client);
-                            } else {
-                                System.exit(0);
+                                Client.roomFrm.setVisible(true);
                             }
+                            boardPanel.removeTank(id);
+                            boardPanel.repaint();
                         } else {
                             boardPanel.removeTank(id);
+                            boardPanel.repaint();
                         }
-                    } else if (sentence.startsWith("Exit")) {
+                    }else if(sentence.startsWith("Win")){
+                        int response = JOptionPane.showConfirmDialog(null, "You're victory!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
+                        if(response == JOptionPane.OK_OPTION){
+                            dispose();
+                            Client.roomFrm.setVisible(true);
+                        }
+                    }
+                    else if (sentence.startsWith("Exit")) {
                         int id = Integer.parseInt(sentence.substring(4));
 
                         if (id != clientTank.getTankID()) {
                             boardPanel.removeTank(id);
+                            boardPanel.repaint();
                         }
                     }
                       
@@ -226,7 +253,7 @@ public class ClientPlayGUI extends JFrame
             }
             try {
                 reader.close();
-                socket.close();
+//                socket.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }

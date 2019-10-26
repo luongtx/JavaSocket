@@ -12,12 +12,18 @@ import java.util.ArrayList;
  * @author luongtx
  */
 public class Test {
+    Student std;
+    public Test(Student std){
+        this.std = std;
+        std.setTutorName("luong");
+    }
+    public String getTutor(){
+        return std.getTutorName();
+    }
     public static void main(String[] args) {
-        ArrayList<Student> stdList = new ArrayList<>();
-        stdList.add(new Student("Luong"));
-        stdList.add(new Student("khiem"));
-        stdList.add(new Student("kiem"));
-        stdList.remove(new Student("Luong"));
-        System.out.println(stdList.size());
+        Student std1 = new Student("abc");
+        Test t = new Test(std1);
+        std1.setTutorName("kiem");
+        System.out.println(t.getTutor());
     }
 }

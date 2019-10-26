@@ -77,7 +77,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         });
 
         btnCombat.setBackground(new java.awt.Color(0, 255, 255));
-        btnCombat.setText("1vs1");
+        btnCombat.setText("Solo");
         btnCombat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCombatActionPerformed(evt);
