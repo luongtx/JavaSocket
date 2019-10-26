@@ -48,16 +48,14 @@ public class InputManager implements KeyListener
             {
                 
                 tank.moveLeft();
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                          tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                 
  
             }
             else if(tank.getDirection()==4)
             {
                 tank.moveLeft();          
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                            tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
             }
         }
         else if(e.getKeyCode()==RIGHT)
@@ -66,15 +64,13 @@ public class InputManager implements KeyListener
             {
                 System.out.println("tank id: "+tank.getTankID());
                 tank.moveRight();                        
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                           tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                     
             }
             else if(tank.getDirection()==2)
             {
                 tank.moveRight();
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                             tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
             }
         }
         else if(e.getKeyCode()==UP)
@@ -82,15 +78,13 @@ public class InputManager implements KeyListener
             if(tank.getDirection()==2|tank.getDirection()==4)
             {
                 tank.moveForward();                            
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                          tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                         
             }
             else if(tank.getDirection()==1)
             {
                 tank.moveForward();
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                        tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                             
             }
         }
@@ -100,21 +94,19 @@ public class InputManager implements KeyListener
             {
                 tank.moveBackward();
                
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                        tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                             
             }
             else if(tank.getDirection()==3)
             {
                 tank.moveBackward();
-                client.sendToServer("UPDATE",new Protocol().UpdatePacket(tank.getXposition(),
-                                tank.getYposition(),tank.getTankID(),tank.getDirection()));
+                client.sendToServer("UPDATE",updatePacket());
                                 
             }
         }
         else if(e.getKeyCode()==KeyEvent.VK_SPACE)
         {
-            client.sendToServer("SHOT",new Protocol().ShotPacket(tank.getTankID()));
+            client.sendToServer("SHOT",shotPacket());
             tank.shot();
         }
     }
@@ -122,5 +114,10 @@ public class InputManager implements KeyListener
     @Override
     public void keyReleased(KeyEvent e) {
     }
-    
+    public String updatePacket(){
+        return tank.getXposition() + "," + tank.getYposition() + "," + tank.getDirection() + "," + tank.getTankID();
+    }
+    public String shotPacket(){
+        return Integer.toString(tank.getTankID());
+    }
 }

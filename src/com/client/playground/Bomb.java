@@ -95,7 +95,7 @@ public class Bomb {
                         ex.printStackTrace();
                     }
                     if (clientTanks.get(i) != null) {
-                        ClientPlayGUI.client.sendToServer("REMOVE", new Protocol().RemoveClientPacket(clientTanks.get(i).getTankID()));
+                        ClientPlayGUI.client.sendToServer("REMOVE", Integer.toString(clientTanks.get(i).getTankID()));
                     }
 
                     return true;

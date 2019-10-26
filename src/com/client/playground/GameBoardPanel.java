@@ -29,6 +29,7 @@ public class GameBoardPanel extends JPanel {
     private int height=523;
     private static ArrayList<Tank> tanks;
     private boolean gameStatus;
+    private InputManager inputHandler;
     public GameBoardPanel(Tank tank, Client client, boolean gameStatus) 
     {
         this.tank=tank;
@@ -42,10 +43,14 @@ public class GameBoardPanel extends JPanel {
         {
             tanks.add(null);
         }
-   
+        
     }
     public void addKeyListener(){
-        this.addKeyListener(new InputManager(tank));
+        inputHandler = new InputManager(tank);
+        this.addKeyListener(inputHandler);
+    }
+    public void removeKeyListener(){
+        this.removeKeyListener(inputHandler);
     }
     public Tank getTank(){
         return this.tank;

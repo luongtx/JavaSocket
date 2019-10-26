@@ -21,9 +21,13 @@ public class Test {
         return std.getTutorName();
     }
     public static void main(String[] args) {
-        Student std1 = new Student("abc");
-        Test t = new Test(std1);
-        std1.setTutorName("kiem");
-        System.out.println(t.getTutor());
+        ArrayList<Student> stdList = new ArrayList<>();
+        stdList.add(new Student("luong"));
+        stdList.add(new Student("kiem"));
+        stdList.add(new Student("khiem"));
+//        stdList = new ArrayList<>();
+        for(int i=0;i<stdList.size();i++){
+            System.out.println(stdList.get(i).getName());
+        }
     }
 }

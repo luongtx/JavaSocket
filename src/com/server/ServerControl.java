@@ -189,13 +189,13 @@ public final class ServerControl {
                         break;
 
                     case "REGISTER":
-                        dis = new DataInputStream(conn.getInputStream());
+//                        dis = new DataInputStream(conn.getInputStream());
                         String msg = dis.readUTF();
                         String[] data = msg.split(",");
                         String userName = data[0];
                         int x = Integer.parseInt(data[1]);
                         int y = Integer.parseInt(data[2]);
-                        dos = new DataOutputStream(conn.getOutputStream());
+//                        dos = new DataOutputStream(conn.getOutputStream());
                         sendToClient(protocol.IDPacket(players.size() + 1));
                         try {
                             BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
@@ -264,7 +264,7 @@ public final class ServerControl {
                         id = Integer.parseInt(msg);
                         BroadCastMessage("Exit"+msg);
                         if (players.get(id - 1) != null) {
-                            players.remove(id-1);
+                            players.set(id-1,null);
                         }
                         break;
                     default:
@@ -277,7 +277,9 @@ public final class ServerControl {
         }
 
         public void BroadCastMessage(String mess) throws IOException {
+            int n = players.size();
             System.out.println("players size: "+players.size());
+            if(n==0) return;
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i) != null) {
                     players.get(i).getWriterStream().writeUTF(mess);
@@ -299,9 +301,12 @@ public final class ServerControl {
 
         //send to all client current tanks state
         public void sendAllClients(DataOutputStream writer) {
+            int n = players.size();
+            if(n==0) return;
             int x, y, dir;
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i) != null) {
+                    System.out.println("player name: "+players.get(i).getPlayerName());
                     x = players.get(i).getX();
                     y = players.get(i).getY();
                     dir = players.get(i).getDir();

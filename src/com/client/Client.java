@@ -9,7 +9,6 @@ import com.client.lobby.ClientLoginFrm;
 import com.client.lobby.ClientRoomFrm;
 import com.client.lobby.ClientTestFrm;
 import com.client.playground.ClientPlayGUI;
-import com.client.playground.Protocol;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -35,7 +34,6 @@ public class Client {
     private ObjectOutputStream oos;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private Protocol protocol;
     private static String serverAddress = "localhost";
     private static int serverPort = 7777;
     private DatagramSocket udpSocket;
@@ -45,11 +43,10 @@ public class Client {
     public static ArrayList<Room> roomList;
     public static ClientLoginFrm loginFrm;
     public static ClientRoomFrm roomFrm;
-    public static ClientPlayGUI mainGUI;
-    public static ClientTestFrm testFrm;
+    private ClientPlayGUI mainGUI;
+//    public static ClientTestFrm testFrm;
     public Client(){
         currentUser = new User();
-        protocol = new Protocol();
         connectServer();
         openUDPSocket();
         initUI();
@@ -205,6 +202,7 @@ public class Client {
         try{
             oos.reset();
             roomList.add(room);
+            System.out.println("roomList size: "+roomList.size());
             dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
 //            oos.flush();
@@ -306,8 +304,9 @@ public class Client {
                         System.out.println("Join request");
                         System.out.println("userID " + userID);
                         System.out.println("roomID " + roomID);
-//                        System.out.println("current user "+ currentUser.getUsername());
+                        System.out.println("current user "+ currentUser.getUsername());
                         getOnlineUsers();
+                        System.out.println("opponent: "+loggedUsers.get(userID).getUsername());
                         if(loggedUsers.get(userID).getUsername().equals(currentUser.getUsername())){
                             addUserToRoom(userID, roomID);
                             System.out.println("boss joined room");
@@ -366,7 +365,7 @@ public class Client {
     public void register(int posX, int posY) throws IOException {
 //        mySocket = new Socket(serverAddress, serverPort);
         dos.writeUTF("REGISTER");
-        dos.writeUTF(protocol.RegisterPacket(currentUser.getUsername(), posX, posY));
+        dos.writeUTF(currentUser.getUsername()+","+posX+","+posY);
     }
     //send msg to server
     public void sendToServer(String title, String data) {
@@ -431,6 +430,12 @@ public class Client {
 
     public Socket getSocket() {
         return mySocket;
+    }
+    public DataInputStream getDataInputStream(){
+        return dis;
+    }
+    public DataOutputStream getDataOutputStream(){
+        return dos;
     }
     
 }

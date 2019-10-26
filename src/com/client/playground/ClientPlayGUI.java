@@ -2,7 +2,7 @@ package com.client.playground;
 
 
 import com.client.Client;
-import com.client.lobby.ClientRoomFrm;
+//import com.server.Protocol;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,7 +10,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.Socket;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -86,7 +85,6 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         
         clientTank=new Tank();
         boardPanel=new GameBoardPanel(clientTank,client,false);
-        boardPanel.addKeyListener();
         //content pane
         getContentPane().add(gameStatusPanel);
         getContentPane().add(boardPanel);
@@ -118,7 +116,8 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         @Override
         public void windowClosing(WindowEvent e) {
             // int response=JOptionPane.showConfirmDialog(this,"Are you sure you want to exit ?","Tanks 2D Multiplayer Game!",JOptionPane.YES_NO_OPTION);
-            client.sendToServer("EXIT",new Protocol().ExitMessagePacket(clientTank.getTankID()));
+            client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+            isRunning = false;
         }
     }
     @Override
@@ -132,21 +131,24 @@ public class ClientPlayGUI extends JFrame implements ActionListener
                 client.register(clientTank.getXposition(), clientTank.getYposition());
     //                 soundManger=new SoundManger();
                 boardPanel.setGameStatus(true);
+                boardPanel.addKeyListener();
 //                boardPanel.repaint();
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 }
-                new ClientRecivingThread(client.getSocket()).start();
+                ClientRecivingThread listenerThread = new ClientRecivingThread();
+                listenerThread.start();
                 boardPanel.setFocusable(true);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "The Server is not running, try again later!", "Tanks 2D Multiplayer Game", JOptionPane.INFORMATION_MESSAGE);
                 System.out.println("The Server is not running!");
             }
         }else{
-            dispose();
             Client.roomFrm.setVisible(true);
+            isRunning = false; 
+            dispose();
         }
         
     }
@@ -154,14 +156,19 @@ public class ClientPlayGUI extends JFrame implements ActionListener
     
     public class ClientRecivingThread extends Thread
     {
-        Socket socket;
         DataInputStream reader;
-        public ClientRecivingThread(Socket socket)
+        public ClientRecivingThread()
         {
-            this.socket=socket;
             try{
-                 reader = new DataInputStream(socket.getInputStream());
+                 reader = client.getDataInputStream();
                  System.out.println("reader: "+reader);
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        }
+        public void closeReader(){
+            try{
+                reader.close();
             }catch(Exception ex){
                 ex.printStackTrace();
             }
@@ -217,24 +224,27 @@ public class ClientPlayGUI extends JFrame implements ActionListener
 
                     } else if (sentence.startsWith("Remove")) {
                         int id = Integer.parseInt(sentence.substring(6));
-                        System.out.println("died: " + id);
                         if (id == clientTank.getTankID()) {
+                            System.out.println("I'm dead");
                             int response = JOptionPane.showConfirmDialog(null, "You're lose!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
                             if(response == JOptionPane.OK_OPTION){
-                                dispose();
                                 Client.roomFrm.setVisible(true);
+                                isRunning = false;
+                                dispose();
                             }
-                            boardPanel.removeTank(id);
-                            boardPanel.repaint();
+//                            boardPanel.removeTank(id);
+                            boardPanel.removeKeyListener();
+//                            boardPanel.repaint();
                         } else {
                             boardPanel.removeTank(id);
-                            boardPanel.repaint();
+//                            boardPanel.repaint();
                         }
                     }else if(sentence.startsWith("Win")){
                         int response = JOptionPane.showConfirmDialog(null, "You're victory!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
                         if(response == JOptionPane.OK_OPTION){
-                            dispose();
                             Client.roomFrm.setVisible(true);
+                            isRunning = false;
+                            dispose();
                         }
                     }
                     else if (sentence.startsWith("Exit")) {
@@ -242,22 +252,14 @@ public class ClientPlayGUI extends JFrame implements ActionListener
 
                         if (id != clientTank.getTankID()) {
                             boardPanel.removeTank(id);
-                            boardPanel.repaint();
+//                            boardPanel.repaint();
                         }
                     }
                       
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }                
-               
             }
-            try {
-                reader.close();
-//                socket.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            
         }
     }
     
