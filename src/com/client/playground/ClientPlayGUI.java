@@ -2,6 +2,7 @@ package com.client.playground;
 
 
 import com.client.Client;
+import com.client.lobby.ClientRoomFrm;
 //import com.server.Protocol;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -56,7 +57,7 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         setSize(width,height);
         setLocation(60,100);
         getContentPane().setBackground(Color.BLACK);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
         addWindowListener(new WindowListener());
         //game status panel
@@ -113,10 +114,12 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         public void windowClosing(WindowEvent e) {
             int response=JOptionPane.showConfirmDialog(rootPane,"Are you sure you want to exit ?","Tanks 2D Multiplayer Game!",JOptionPane.OK_CANCEL_OPTION);
             if(response==JOptionPane.OK_OPTION){
-                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
                 isRunning = false;
-                dispose();
+                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
                 client.logout();
+                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            }else{
+                setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             }
         }
     }
@@ -148,10 +151,9 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         }else{
             int response=JOptionPane.showConfirmDialog(rootPane,"Are you sure to exit, your current game will lost?","Tanks 2D Multiplayer Game!",JOptionPane.OK_CANCEL_OPTION);
             if(response==JOptionPane.OK_OPTION){
-//                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
-                Client.roomFrm.setVisible(true);
                 isRunning = false;
-                dispose();
+                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+                client.returnLobby();
             }
         }
         
@@ -224,9 +226,9 @@ public class ClientPlayGUI extends JFrame implements ActionListener
                             System.out.println("I'm dead");
                             int response = JOptionPane.showConfirmDialog(null, "You're lose!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
                             if(response == JOptionPane.OK_OPTION){
-                                Client.roomFrm.setVisible(true);
                                 isRunning = false;
-                                dispose();
+                                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+                                client.returnLobby();
                             }
 //                            boardPanel.removeTank(id);
                             boardPanel.removeKeyListener();
@@ -238,10 +240,11 @@ public class ClientPlayGUI extends JFrame implements ActionListener
                     }else if(sentence.startsWith("Win")){
                         int response = JOptionPane.showConfirmDialog(null, "You're victory!, back to lobby?","Java 2d tank game", JOptionPane.OK_CANCEL_OPTION);
                         if(response == JOptionPane.OK_OPTION){
-                            Client.roomFrm.setVisible(true);
                             isRunning = false;
-                            dispose();
+                            client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+                            client.returnLobby();
                         }
+                        boardPanel.removeKeyListener();
                     }
                     else if (sentence.startsWith("Exit")) {
                         int id = Integer.parseInt(sentence.substring(4));

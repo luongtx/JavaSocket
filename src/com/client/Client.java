@@ -42,8 +42,8 @@ public class Client {
     private User currentUser;
     private static ArrayList<User> loggedUsers;
     public static ArrayList<Room> roomList;
-    public static ClientLoginFrm loginFrm;
-    public static ClientRoomFrm roomFrm;
+    private ClientLoginFrm loginFrm;
+    private ClientRoomFrm roomFrm;
     private ClientPlayGUI mainGUI;
 //    public static ClientTestFrm testFrm;
     public Client(){
@@ -138,6 +138,7 @@ public class Client {
     }
     public void logout(){
         try{
+            roomFrm.dispose();
             currentUser.setLogin(false);
             dos.writeUTF("LOGOUT");
             oos.writeObject(currentUser);
@@ -374,22 +375,22 @@ public class Client {
     }
     //send msg to server
     public void sendToServer(String title, String data) {
-        if (title.equals("EXIT")) {
-            mainGUI.dispose();
-//            roomFrm.setVisible(true);
-        }else {
-            try {
-                dos.writeUTF(title);
-                if(title.equals("REMOVE")) data = currentUser.getUsername() +" "+ data;
-                dos.writeUTF(data);
-                System.out.println(title + data);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        try {
+            dos.writeUTF(title);
+            if (title.equals("REMOVE")) {
+                data = currentUser.getUsername() + " " + data;
             }
+            dos.writeUTF(data);
+            System.out.println(title + data);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
 
     }
-   
+    public void returnLobby(){
+        mainGUI.dispose();
+        roomFrm.setVisible(true);
+    }
     public ArrayList<User> getOnlineUsers(){
         try {
             dos.writeUTF("GETONLINEUSERS");

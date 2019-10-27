@@ -269,6 +269,7 @@ public final class ServerControl {
                             user1.setWin(user1.getWin()+1);
                             sendToClient("Win");
                             dao.updateResult(onlineUsers);
+                            players = new ArrayList<>();
                         }
                         break;
                     case "EXIT":
@@ -278,6 +279,7 @@ public final class ServerControl {
                         if (players.get(id - 1) != null) {
                             players.set(id-1,null);
                         }
+                        if(isBattleEnd()) players = new ArrayList<>();
                         break;
                     case "GETALLUSERS":
                         System.out.println("get all users");
@@ -293,7 +295,12 @@ public final class ServerControl {
 
             }
         }
-
+        public boolean isBattleEnd(){
+            for(Player p: players){
+                if(p!=null) return false;
+            }
+            return true;
+        }
         public void BroadCastMessage(String mess) throws IOException {
             int n = players.size();
             System.out.println("players size: "+players.size());
