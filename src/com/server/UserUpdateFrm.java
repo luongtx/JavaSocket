@@ -14,6 +14,7 @@ import com.client.User;
  *
  * @author luongtx
  */
+//Giao diện quản lý người dùng
 public class UserUpdateFrm extends javax.swing.JFrame {
 
     /**

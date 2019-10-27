@@ -17,6 +17,7 @@ import com.client.User;
  *
  * @author luongtx
  */
+//Đối tượng giao tiếp với csdl
 public class ServerDAO {
     protected static Connection dbConn;
     public ServerDAO(){
@@ -38,7 +39,7 @@ public class ServerDAO {
     public Connection getConnection(){
         return dbConn;
     }
-    
+    //thêm tài khoản người dùng
     public boolean addUserAccount(User user){
          String sql1 = "SELECT * FROM tblUser WHERE username = ?";
          String sql2 = "INSERT INTO tblUser (username, password) VALUES(?,?)";
@@ -64,6 +65,7 @@ public class ServerDAO {
          }
          return check;
      }
+    //Xóa tài khoản người dùng
      public boolean deleteUser(String username){
          String sql = "DELETE FROM tbluser WHERE username=?";
          PreparedStatement ps;
@@ -79,6 +81,7 @@ public class ServerDAO {
          }
          return check;
      }
+     //lấy tất cả người dùng
      public ArrayList<User> getAllUsers(){
          ArrayList<User> userList = new ArrayList<>();
          String sql = "SELECT * FROM tbluser";
@@ -97,6 +100,7 @@ public class ServerDAO {
          }
          return userList;
      }
+     //lấy thông tin của người dùng từ thông tin xác thực
     public User getUserInfor(User user) {
         String sql = "SELECT * FROM tblUser WHERE username = ? && password = ?";
         PreparedStatement ps;
@@ -118,6 +122,7 @@ public class ServerDAO {
         }
         return user;
     }
+    //cập nhật kết quả cho người chơi
     public void updateResult(ArrayList<User> userList) throws SQLException{
         String sql = "UPDATE tblUser SET score = ?, win = ?, lose = ? WHERE username = ? ";
         PreparedStatement ps;

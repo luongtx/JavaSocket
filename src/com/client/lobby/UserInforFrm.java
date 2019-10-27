@@ -13,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author luongtx
  */
+//Giao diện xem bảng xếp hạng
 public class UserInforFrm extends javax.swing.JFrame {
 
     /**
@@ -28,8 +29,9 @@ public class UserInforFrm extends javax.swing.JFrame {
     }
     public void displayTable(ArrayList<User> users){
         mdtbUsers.setRowCount(0);
+        int i = 1;
         for(User user: users){
-            mdtbUsers.addRow(new Object[]{user.getUsername(), user.getWin(), user.getLose(), user.getScore()});
+            mdtbUsers.addRow(new Object[]{i++,user.getUsername(), user.getWin(), user.getLose(), user.getScore()});
         }
     }
     /**
@@ -52,18 +54,31 @@ public class UserInforFrm extends javax.swing.JFrame {
 
             },
             new String [] {
-                "username", "win", "lose", "score"
+                "No", "Username", "Win", "Lose", "Score"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
+        tbUser.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(tbUser);
+        if (tbUser.getColumnModel().getColumnCount() > 0) {
+            tbUser.getColumnModel().getColumn(0).setResizable(false);
+            tbUser.getColumnModel().getColumn(0).setPreferredWidth(5);
+            tbUser.getColumnModel().getColumn(1).setResizable(false);
+            tbUser.getColumnModel().getColumn(1).setPreferredWidth(25);
+            tbUser.getColumnModel().getColumn(2).setResizable(false);
+            tbUser.getColumnModel().getColumn(2).setPreferredWidth(15);
+            tbUser.getColumnModel().getColumn(3).setResizable(false);
+            tbUser.getColumnModel().getColumn(3).setPreferredWidth(15);
+            tbUser.getColumnModel().getColumn(4).setResizable(false);
+            tbUser.getColumnModel().getColumn(4).setPreferredWidth(15);
+        }
 
         jLabel1.setText("Leader board");
 

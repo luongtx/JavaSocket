@@ -28,10 +28,10 @@ public final class ServerControl {
     private Connection dbConn;
     private final int serverPort = 7777;
     private ServerDAO dao;
-    private ArrayList<User> userList = new ArrayList<>();
-    private ArrayList<User> onlineUsers = new ArrayList<>();
-    private ArrayList<Room> roomList = new ArrayList<>();
-    private ArrayList<Player> players = new ArrayList<>();
+    private ArrayList<User> userList = new ArrayList<>();//danh sách tất cả người dùng
+    private ArrayList<User> onlineUsers = new ArrayList<>();//danh sách người chơi online(đã đăng nhập)
+    private ArrayList<Room> roomList = new ArrayList<>();//danh sách các phòng
+    private ArrayList<Player> players = new ArrayList<>();//danh sách người chơi
     private ServerStartFrm startFrm;
     private Protocol protocol;
     public boolean running = true;
@@ -43,11 +43,12 @@ public final class ServerControl {
         initUI();
         listenning(serverPort);
     }
-
+    //khởi tạo giao diện 
     public void initUI() {
         startFrm = new ServerStartFrm(this);
         startFrm.setVisible(true);
     }
+    //dừng server
     public void stopServer(){
         try{
             dbConn.close();
@@ -59,21 +60,20 @@ public final class ServerControl {
 //            ex.printStackTrace();
         }
     }
+    //lắng nghe clients
     public void listenning(int portNumber) {
         try {
-            //create(bind) server socket to listenning client on specified port
             myServer = new ServerSocket(portNumber);
             System.out.println("Server is listenning...");
-            //to serve multiple players
             while (running) {
                 try {
-                    //accept a client connection request
+                    //chập nhận kết nối từ clients
                     socketConn = myServer.accept();
                     System.out.println("server accept client connection");
                     ClientHandler clientHandler = new ClientHandler(socketConn);
                     clientHandler.start();
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+//                    ex.printStackTrace();
                     break;
                 }
             }
@@ -82,7 +82,7 @@ public final class ServerControl {
             ex.printStackTrace();
         }
     }
-
+    //Xử lý request từ clients
     class ClientHandler extends Thread {
 
         Socket conn;
@@ -90,7 +90,7 @@ public final class ServerControl {
         ObjectOutputStream oos;
         DataInputStream dis;
         DataOutputStream dos;
-
+        
         public ClientHandler(Socket conn) {
             this.conn = conn;
             try{
@@ -120,7 +120,9 @@ public final class ServerControl {
 
         public void handle(String request) {
             try {
+                //xử lý các yêu cầu
                 switch (request) {
+                    //yêu cầu đăng nhập
                     case "LOGIN":
                         User user = (User) ois.readObject();
                         String status = "";
@@ -132,15 +134,15 @@ public final class ServerControl {
                         }
                         dos.writeUTF(status);
                         if (status.equals("OK")) {
-                            System.out.println("username: " + user.getUsername());
+//                            System.out.println("username: " + user.getUsername());
                             if (!checkOnline(user)) {
                                 onlineUsers.add(user);
                             }
                         }
                         break;
+                    //yêu cầu đăng ký tài khoản
                     case "SIGNUP":
                         user = (User) ois.readObject();
-//                        System.out.println("username: " + user.getUsername());
                         status = "";
                         if (dao.addUserAccount(user)) {
                             status = "OK";
@@ -150,17 +152,19 @@ public final class ServerControl {
                         dos.writeUTF(status);
                         oos.flush();
                         break;
+                    //yêu cầu lấy thông tin người dùng đăng nhập
                     case "GETONLINEUSERS":
-                        oos.reset();//remove old objects in stream
-                        System.out.println("online: " + onlineUsers.size());
+                        oos.reset();
+//                        System.out.println("online: " + onlineUsers.size());
                         oos.writeObject(onlineUsers);
                         break;
+                    //yêu cầu đăng xuất    
                     case "LOGOUT":
                         try {
                             user = (User) ois.readObject();
                             onlineUsers.remove(getUserIndex(user.getUsername()));
                             System.out.println("online: " + onlineUsers.size());
-                            //update roomList
+                            //cập nhật lại danh sách các phòng
                             ArrayList<User> listUser;
                             try {
                                 for (Room r : roomList) {
@@ -182,31 +186,23 @@ public final class ServerControl {
                             ex.printStackTrace();
                         }
                         break;
+                    //yêu cầu cập nhật danh sách phòng    
                     case "UPDATEROOMS":
                         roomList = (ArrayList<Room>) ois.readObject();
-                        System.out.println("number of rooms: " + roomList.size());
-                        for (Room room : roomList) {
-                            System.out.println("[room info]");
-                            System.out.println("room name: " + room.getRoomName());
-                            System.out.println("room current status: " + room.getStatus());
-//                            ArrayList<User> users = room.getUserList();
-//                            for(User u: users) System.out.println(u.getUsername());
-                        }
+//                        System.out.println("number of rooms: " + roomList.size());
                         break;
+                    //yêu cầu lấy danh sách phòng
                     case "GETROOMS":
                         oos.reset();
-                        System.out.println("number of rooms: " + roomList.size());
                         oos.writeObject(roomList);
                         break;
-
+                    //yêu cầu gửi vị trí tank
                     case "REGISTER":
-//                        dis = new DataInputStream(conn.getInputStream());
                         String msg = dis.readUTF();
                         String[] data = msg.split(",");
                         String userName = data[0];
                         int x = Integer.parseInt(data[1]);
                         int y = Integer.parseInt(data[2]);
-//                        dos = new DataOutputStream(conn.getOutputStream());
                         sendToClient(protocol.IDPacket(players.size() + 1));
                         try {
                             BroadCastMessage(protocol.NewClientPacket(x, y, 1, players.size() + 1));
@@ -217,8 +213,8 @@ public final class ServerControl {
                         players.add(new Player(userName, dos, x, y, 1));
                         System.out.println(players.size());
                         break;
+                    //yêu cầu di chuyển tank    
                     case "MOVE":
-//                        System.out.println("UPDATE");
                         msg = dis.readUTF();
                         System.out.println(msg);
                         data = msg.split(",");
@@ -226,7 +222,7 @@ public final class ServerControl {
                         y = Integer.parseInt(data[1]);
                         int dir = Integer.parseInt(data[2]);
                         int id = Integer.parseInt(data[3]);
-                        System.out.println("id: " + id);
+//                        System.out.println("id: " + id);
                         if (players.get(id - 1) != null) {
                             players.get(id - 1).setPosX(x);
                             players.get(id - 1).setPosY(y);
@@ -234,32 +230,36 @@ public final class ServerControl {
                             BroadCastMessage("Update"+msg);
                         }
                         break;
+                    //yêu cầu shot (nhả bomb)
                     case "SHOT":
                         msg = dis.readUTF();
                         System.out.println(msg);
                         id = Integer.parseInt(msg);
                         BroadCastMessage("Shot"+msg);
                         break;
+                    //yêu cầu xóa tank
                     case "REMOVE":
                         msg = dis.readUTF();
                         System.out.println(msg);
                         data = msg.split(" ");
-                        //cap nhat diem cho player 1
+                        //Cập nhật điểm cho player 1 (người nhả bomb)
                         String playerName = data[0];
                         User user1 = onlineUsers.get(getUserIndex(playerName));
                         int score = user1.getScore();
                         user1.setScore(score + 50);
-                        //cap nhat diem cho player 2
+                        //cập nhật điểm cho player 2 (người trúng bomb)
                         id = Integer.parseInt(data[1]);
                         playerName = players.get(id-1).getPlayerName();
                         User user2 = onlineUsers.get(getUserIndex(playerName));
                         int lose = user2.getLose();
                         user2.setLose(lose+1);
+                        //thông báo cho tất cả người chơi
                         BroadCastMessage("Remove"+id);
                         if (players.get(id - 1) != null) {
                             players.set(id - 1, null);
 //                            System.out.println("player died: "+id);
                         }
+                        //kiểm tra xem player 1 có phải là người chơi cuối cùng
                         int alive = 0;
                         for(Player p: players){
                             if(p!=null) alive ++;
@@ -272,17 +272,25 @@ public final class ServerControl {
                             players = new ArrayList<>();
                         }
                         break;
+                    //yêu cầu thoát game
                     case "EXIT":
                         msg = dis.readUTF();
                         id = Integer.parseInt(msg);
-                        BroadCastMessage("Exit"+msg);
-                        if (players.get(id - 1) != null) {
-                            players.set(id-1,null);
+                        BroadCastMessage("Exit" + msg);
+                        try {
+                            if (players.get(id - 1) != null) {
+                                players.set(id - 1, null);
+                            }
+                        } catch (Exception ex) {
+
                         }
-                        if(isBattleEnd()) players = new ArrayList<>();
+                        if (isBattleEnd()) {
+                            players = new ArrayList<>();
+                        }
                         break;
+                    //lấy tất cả danh sách users
                     case "GETALLUSERS":
-                        System.out.println("get all users");
+//                        System.out.println("get all users");
                         userList = dao.getAllUsers();
 //                        oos.reset();
                         oos.writeObject(userList);
@@ -295,15 +303,17 @@ public final class ServerControl {
 
             }
         }
+        //kiểm tra xem trận đấu kết thúc chưa
         public boolean isBattleEnd(){
             for(Player p: players){
                 if(p!=null) return false;
             }
             return true;
         }
+        //Gửi một thông điệp cho tất cả người chơi
         public void BroadCastMessage(String mess) throws IOException {
             int n = players.size();
-            System.out.println("players size: "+players.size());
+//            System.out.println("players size: "+players.size());
             if(n==0) return;
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i) != null) {
@@ -311,7 +321,7 @@ public final class ServerControl {
                 }
             }
         }
-
+        //Gửi thông điệp cho 1 người chơi
         public void sendToClient(String message) {
             if (message.equals("exit")) {
                 System.exit(0);
@@ -324,14 +334,14 @@ public final class ServerControl {
             }
         }
 
-        //send to all client current tanks state
+        //gửi cho người chơi thông tin vị trí tank của tất cả các người chơi
         public void sendAllClients(DataOutputStream writer) {
             int n = players.size();
             if(n==0) return;
             int x, y, dir;
             for (int i = 0; i < players.size(); i++) {
                 if (players.get(i) != null) {
-                    System.out.println("player name: "+players.get(i).getPlayerName());
+//                    System.out.println("player name: "+players.get(i).getPlayerName());
                     x = players.get(i).getX();
                     y = players.get(i).getY();
                     dir = players.get(i).getDir();
@@ -343,7 +353,7 @@ public final class ServerControl {
                 }
             }
         }
-
+        //kiểm tra người dùng đã đăng nhập chưa
         private boolean checkOnline(User cUser) {
             for (User user : onlineUsers) {
                 if (user.getUsername().equals(cUser.getUsername())) {
@@ -352,7 +362,7 @@ public final class ServerControl {
             }
             return false;
         }
-
+        //trả về id của người dùng
         private int getUserIndex(String username) {
             int size = onlineUsers.size();
             for (int i = 0; i < size; i++) {
@@ -367,6 +377,7 @@ public final class ServerControl {
     public ArrayList<User> getOnlineUsers() {
         return onlineUsers;
     }
+    //Thông tin về người chơi
     class Player {
         String playerName;
         DataOutputStream writer;

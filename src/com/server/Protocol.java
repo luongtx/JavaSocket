@@ -13,6 +13,7 @@ package com.server;
  *
  * @author Mohamed Talaat Saad
  */
+//Tạo thông điệp đầy đủ để gửi cho client
 public class Protocol {
     
     private String message="";

@@ -5,7 +5,6 @@
  */
 package com.client;
 
-import com.client.User;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -13,11 +12,12 @@ import java.util.ArrayList;
  *
  * @author luongtx
  */
+//Thông tin về phòng
 public class Room implements Serializable{
-    private String roomName;
-    private User boss;
-    private ArrayList<User> userList;
-    private int capacity;
+    private String roomName;//Tên phòng
+    private User boss;//Chủ phòng
+    private ArrayList<User> userList;//Danh sách người chơi trong phòng
+    private int capacity;//Sức chứa của phòng
     public Room(String name, User boss, int capacity){
         this.roomName = name;
         this.boss = boss;

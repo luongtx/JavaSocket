@@ -35,7 +35,7 @@ public class Tank {
         return direction;
     }
     
-    /** Creates a new instance of Tank */
+    //Tạo một đối tượng tank mới
     public Tank() 
     {  
         while(posiX<70|posiY<50|posiY>height-43|posiX>width-43)
@@ -224,6 +224,7 @@ public class Tank {
         curBomb++;
     
     }
+    //Xử lý va chạm
     public boolean checkCollision(int xP,int yP)
     {
         ArrayList<Tank>clientTanks=GameBoardPanel.getClients();

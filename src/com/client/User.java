@@ -12,17 +12,17 @@ import java.net.InetAddress;
  *
  * @author luongtx
  */
+//Thông tin về người dùng
 public class User implements Serializable{
     private String username;
     private String password;
-    private int win;
-    private int lose;
-    private int score;
-    private boolean login = false;
+    private int win;//số trận thắng
+    private int lose;//số trận thua
+    private int score;//tổng điểm
+    private boolean login = false;//trạng thái đăng nhập
     private InetAddress ipAddress;
     private int port;
 
-    
     public User(String username, String password) {
         this.username = username;
         this.password = password;

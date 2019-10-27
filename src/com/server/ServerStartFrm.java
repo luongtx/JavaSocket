@@ -6,7 +6,6 @@
 package com.server;
 
 import java.awt.Color;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -98,6 +97,7 @@ public class ServerStartFrm extends javax.swing.JFrame {
         // TODO add your handling code here:
         lbStatus.setText("Server is stopping");
         lbStatus.setForeground(Color.red);
+        lbStatus.setVisible(true);
         try{
             Thread.sleep(1000);
         }catch(Exception ex){

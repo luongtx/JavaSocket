@@ -10,6 +10,7 @@ import com.client.User;
 import com.client.Client;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -30,19 +31,22 @@ public class ClientRoomFrm extends javax.swing.JFrame {
 //        client.listenBattleRequest();
         this.client = client;
         initComponents();
-//        roomFrm = this;
         mdtbRoom = (DefaultTableModel) tbRoom.getModel();
         this.addWindowListener(new WindowsClosedListener());
         lbUser.setText(client.getCurrentUser().getUsername());
+        //cập nhật danh sách người dùng online và phòng
         updateListUser(client.getOnlineUsers());
         updateTbRoom(client.getRooms());
     }
     private class WindowsClosedListener extends WindowAdapter{
+        //Khi người dùng đóng giao diện
         @Override
         public void windowClosing(java.awt.event.WindowEvent windowEvent) {
             int option = JOptionPane.showConfirmDialog(rootPane, "Are you sure to exit: ",null, JOptionPane.OK_CANCEL_OPTION);
             if(option==JOptionPane.OK_OPTION){
                 client.logout();
+            }else{
+                setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             }
         }
     }

@@ -155,7 +155,7 @@ public class ClientLoginFrm extends javax.swing.JFrame {
            client.login(userInput);
         }
     }//GEN-LAST:event_jPasswordField1KeyPressed
-
+    //lấy thông tin người dùng nhập từ bàn phím
     public User getInputUser(){
         String txtUsername = jTextField1.getText();
         String txtPass = jPasswordField1.getText();

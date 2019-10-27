@@ -16,6 +16,7 @@ import java.awt.event.KeyListener;
  *
  * @author Mohamed Talaat Saad
  */
+//Xử lý sự kiện nhấn phím
 public class InputManager implements KeyListener  
 {
     private final int LEFT = 37;
@@ -113,9 +114,11 @@ public class InputManager implements KeyListener
     @Override
     public void keyReleased(KeyEvent e) {
     }
+    //Thông tin để định vị tank: tọa độ, hướng di chuyển và tank id
     public String updatePacket(){
         return tank.getXposition() + "," + tank.getYposition() + "," + tank.getDirection() + "," + tank.getTankID();
     }
+    //ID của tank nhả bomb
     public String shotPacket(){
         return Integer.toString(tank.getTankID());
     }

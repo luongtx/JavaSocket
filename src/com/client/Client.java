@@ -35,17 +35,16 @@ public class Client {
     private ObjectOutputStream oos;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private static String serverAddress = "localhost";
+    private static String serverAddress = "192.168.0.107";
     private static int serverPort = 7777;
     private DatagramSocket udpSocket;
     private DatagramPacket sendPk, receivePk;
-    private User currentUser;
-    private static ArrayList<User> loggedUsers;
-    public static ArrayList<Room> roomList;
-    private ClientLoginFrm loginFrm;
-    private ClientRoomFrm roomFrm;
-    private ClientPlayGUI mainGUI;
-//    public static ClientTestFrm testFrm;
+    private User currentUser;//Người dùng hiện tại
+    private static ArrayList<User> loggedUsers;//Danh sách người chơi đã đăng nhập
+    public static ArrayList<Room> roomList;//Danh sách phòng
+    private ClientLoginFrm loginFrm;//Giao diện đăng nhập
+    private ClientRoomFrm roomFrm;// Giao diện sảnh đợi
+    private ClientPlayGUI mainGUI;// Giao diện chơi game
     public Client(){
         currentUser = new User();
         connectServer();
@@ -53,10 +52,12 @@ public class Client {
         initUI();
         listenRequest();
     }
+    //khởi tạo giao diện
     public void initUI(){
         loginFrm = new ClientLoginFrm(this);
         loginFrm.setVisible(true);
     }
+    //kết nối server, khởi tạo luồng đọc ghi
     public void connectServer(){
         if(mySocket==null){
             try{
@@ -71,14 +72,15 @@ public class Client {
             }
         }
     }
+    //UDPsocket để giao tiếp với các client khác
     public void openUDPSocket(){
         try{
             udpSocket = new DatagramSocket();
-//            replyBattleRequest();
         }catch(Exception ex){
             ex.printStackTrace();
         }
     }
+    //đóng kết nối tới server và các luồng đọc ghi
     public void closeConnection(){
         if(mySocket!=null){
             try{
@@ -92,6 +94,7 @@ public class Client {
             }
         }
     }
+    //trả về đối tượng user theo tên
     public User getUserByName(String userName){
         for(User user: loggedUsers){
             if(user.getUsername().equals(userName)){
@@ -100,10 +103,12 @@ public class Client {
         }
         return null;
     }
+    //đăng nhập
     public void login(User user) {
         try {
+            //Lấy danh sách người dùng đăng nhập
             loggedUsers = getOnlineUsers();
-            System.out.println("loggedUser size: "+loggedUsers.size());
+            //Nếu người dùng đã có trong ds đăng nhập
             try{
                 if(getUserByName(user.getUsername())!=null) {
                     JOptionPane.showMessageDialog(roomFrm, "This account currently logged in!");
@@ -112,14 +117,17 @@ public class Client {
             }catch(Exception ex){
                 
             }
+            //Gán địa chỉ ip và port cho người dùng
             if(getUserByName(user.getUsername())==null){
                 user.setIpAddress(InetAddress.getLocalHost());
                 user.setPort(udpSocket.getLocalPort());
             }
+            //Gửi yêu cầu login tới server
             dos.writeUTF("LOGIN");
             oos.writeObject(user);
             String msg = dis.readUTF();
             System.out.println("login stt: "+msg);
+            //Nhận về trạng thái đăng nhập
             if (msg.equals("OK")) {
                 currentUser = user;
                 System.out.println("user: "+currentUser.getUsername());
@@ -136,9 +144,9 @@ public class Client {
             ex.printStackTrace();
         }
     }
+    //đăng xuất
     public void logout(){
         try{
-            roomFrm.dispose();
             currentUser.setLogin(false);
             dos.writeUTF("LOGOUT");
             oos.writeObject(currentUser);
@@ -146,7 +154,7 @@ public class Client {
             ex.printStackTrace();
         }
     }
-    
+    //đăng ký
     public boolean signUp(User user) {
         try {
             dos.writeUTF("SIGNUP");
@@ -158,24 +166,28 @@ public class Client {
         }
         return false;
     }
-   
+    //gửi yêu cầu thách đấu tới đối thủ theo id
     public void requestSolo(int enemyId){
         try {
             String req = "SOLO " + currentUser.getUsername();
             byte[] send_buf = req.getBytes();
+            //lấy thông tin đối thủ theo id
             User enemy = loggedUsers.get(enemyId);
+            //nếu tự gửi yêu cầu thách đấu tới chính mình
             if(currentUser.getUsername().equals(enemy.getUsername())){
                 JOptionPane.showMessageDialog(null, "lol!");
                 return;
             }
             System.out.println("enemy ip: "+enemy.getIpAddress());
             System.out.println("enemy port: "+enemy.getPort());
+            //gửi thông điệp yêu cầu
             sendPk = new DatagramPacket(send_buf, send_buf.length, enemy.getIpAddress(), enemy.getPort());
             udpSocket.send(sendPk);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    //kiểm tra xem người dùng đã vào nhóm chưa
     public boolean isJoined(int roomID, User user){
         Room aRoom = roomList.get(roomID);
         ArrayList<User> aList = aRoom.getUserList();
@@ -184,55 +196,58 @@ public class Client {
         }
         return false;
     }
+    //gửi yêu cầu nhập phòng
     public void requestJoinRoom(int roomID){
         try{
+            //Nếu người dùng đã nhập phòng
             if(isJoined(roomID,currentUser)) {
                 JOptionPane.showMessageDialog(roomFrm, "You're currently in this room!");
                 return;
             }
+            //lấy id của người dùng muốn nhập phòng
             int userID = loggedUsers.indexOf(getUserByName(currentUser.getUsername()));
-//            System.out.println("User id "+userID);
             String msg = "JOIN " + roomID + " " + userID;
             byte[] send_buf = msg.getBytes();
+            //lấy thông tin về chủ phòng
             User boss = roomList.get(roomID).getBoss();
+            //gửi yêu cầu nhập phòng cho chủ phòng
             sendPk = new DatagramPacket(send_buf, send_buf.length, boss.getIpAddress(), boss.getPort());
             udpSocket.send(sendPk);
         }catch(Exception ex){
             ex.printStackTrace();
         }
     }
-    
+    //tạo phòng mới
     public void createRoom(Room room){
         try{
             roomList.add(room);
-            System.out.println("roomList size: "+roomList.size());
             dos.writeUTF("UPDATEROOMS");
-//            oos.reset();
             oos.writeObject(roomList);
-//            oos.flush();
         }catch(Exception ex){
             ex.printStackTrace();
         }
     }
+    //xóa phòng
     public void deleteRoom(int roomID){
         try {
+            //Người dùng không phải chủ phòng không có quyền xóa phòng
             User roomBoss = roomList.get(roomID).getBoss();
             if(!roomBoss.getUsername().equals(currentUser.getUsername())){
                 JOptionPane.showMessageDialog(roomFrm, "You don't have permission");
                 return;
             }
             roomList.remove(roomID);
-//            oos.reset();
+            //Gửi yêu cầu cập nhật phòng lên server
             dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
-//            oos.flush();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
-    
+    // Thêm một người chơi vào phòng
     public boolean addUserToRoom(int userID, int roomID){
         Room aRoom = roomList.get(roomID);
+        //nếu phòng đã đầy
         if(aRoom.getStatus().contains("full")){
             JOptionPane.showMessageDialog(roomFrm, "room full!");
             return false;
@@ -244,6 +259,7 @@ public class Client {
         roomList.set(roomID, aRoom);
         return true;
     }
+    // gửi một thông điệp tới một client xác định bởi ip và port
     public void sendToPeer(String msg, InetAddress address, int port){
         try {
             byte[] send_buf = msg.getBytes();
@@ -254,107 +270,102 @@ public class Client {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    //send msg to all room member
+    //gửi thông điệp cho tất cả các client trong một phòng nhất định
     public void sendRoomMsg(String msg, int roomID) throws InterruptedException{
         Room aRoom = roomList.get(roomID);
         ArrayList<User> roomMembers = aRoom.getUserList();
-        System.out.println("current room size: "+roomMembers.size());
         for(User user: roomMembers){
             sendToPeer(msg, user.getIpAddress(), user.getPort());
             Thread.sleep(500);
         }
     }
-    
+    //lắng nghe yêu cầu từ các client khác
     public void listenRequest(){
         while(true){
             try{
                 byte[] receive_buf = new byte[1024];
                 receivePk = new DatagramPacket(receive_buf, receive_buf.length);
-                System.out.println("[Listening battle request]");
                 udpSocket.receive(receivePk);
-                System.out.println("[Accept request]");
                 String receiveMsg = new String(receivePk.getData());
                 String [] data = receiveMsg.split(" ");
                 String req = data[0].trim();
+                //Xử lý từng request
                 switch(req){
+                    //Bắt đầu game
                     case "START":
-                        System.out.println("trigger start");
-//                        oos.writeObject("START");
+//                        System.out.println("trigger start");
                         mainGUI = new ClientPlayGUI(this);
                         mainGUI.setVisible(true);
                         roomFrm.setVisible(false);
-//                        sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
+                    //Đấu Solo 1 vs 1
                     case "SOLO":
                         String ans;
                         String rivalName = data[1].trim();
                         int input = JOptionPane.showConfirmDialog(roomFrm, "Do you want to play with "+ rivalName, "Confirm battle request", JOptionPane.OK_CANCEL_OPTION);
                         if(input==JOptionPane.OK_OPTION) {
                             ans = "REPSOLO OK";
-//                            oos.writeObject("START");
                             mainGUI = new ClientPlayGUI(this);
                             mainGUI.setVisible(true);
                             roomFrm.setVisible(false);
                             Thread.sleep(500);
                         }else ans = "REPSOLO CANCEL";
-                        //reply
+                        //Gửi thông điệp xác nhận thách đấu cho người thách đấu
                         sendToPeer(ans, receivePk.getAddress(), receivePk.getPort());
-//                        udpSocket.close();
-//                        System.out.println("stop listening battle request");
-//                        sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         break;
+                    //Nhập phòng    
                     case "JOIN":
                         int roomID = Integer.parseInt(data[1].trim());
                         int userID = Integer.parseInt(data[2].trim());
-                        System.out.println("Join request");
-                        System.out.println("userID " + userID);
-                        System.out.println("roomID " + roomID);
-                        System.out.println("current user "+ currentUser.getUsername());
+                        //Lấy danh sách người chơi online (đã đăng nhập)
                         getOnlineUsers();
-                        System.out.println("opponent: "+loggedUsers.get(userID).getUsername());
+                        //Nếu người yêu cầu nhập phòng là chính người chơi hiện tại
                         if(loggedUsers.get(userID).getUsername().equals(currentUser.getUsername())){
                             addUserToRoom(userID, roomID);
-                            System.out.println("boss joined room");
-                            System.out.println("current room status: "+roomList.get(roomID).getStatus());
                         }else{
                             String roomName = roomList.get(roomID).getRoomName();
                             String userName = loggedUsers.get(userID).getUsername();
+                            //Gửi thông báo xác nhận cho người chơi nhập phòng
                             input = JOptionPane.showConfirmDialog(roomFrm, "Do you want "+userName+" to join room "+roomName,"Confirm join request",JOptionPane.OK_CANCEL_OPTION);
                             if(input==JOptionPane.OK_OPTION && addUserToRoom(userID, roomID)){
                                 ans = "REPJOIN OK";
                             }else ans = "REPJOIN CANCEL";
+                            //Gửi thông điệp xác nhận cho nhập phòng tới người yêu cầu nhập phòng
                             sendToPeer(ans, receivePk.getAddress(), receivePk.getPort());
-                            System.out.println("current room status: "+roomList.get(roomID).getStatus());
                         }
+                        //Nếu phòng đã đủ người thì thông báo cho tất cả người chơi trong phòng bắt đầu game
                         if (roomList.get(roomID).getStatus().contains("full")) {
                             System.out.println("room full!");
                             sendRoomMsg("START", roomID);
                         }
+                        //Cập nhật lại bảng danh sách phòng
                         roomFrm.updateTbRoom(roomList);
+                        //Gửi yêu cầu cập nhật danh sách phòng tới server và danh sách phòng tương ứng
                         dos.writeUTF("UPDATEROOMS");
                         oos.reset();
                         oos.writeObject(roomList);
 //                        oos.flush();
                         break;
+                    //Xác nhận cho nhập phòng
                     case "REPJOIN":
                         String msg = data[1].trim();
+                        //Nếu cho nhập phòng thì hiện thông báo yêu cầu người chơi đợi cho phòng đủ người
                         if(msg.contains("OK")){
                             JOptionPane.showMessageDialog(roomFrm, "wait for battle!");
                             roomFrm.updateTbRoom(getRooms());
                         }
+                        //Nếu thông điệp xác nhận cho nhập phòng là từ chối
                         else
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         break;
+                    //Xác nhận đấu 1 vs 1
                     case "REPSOLO":
                         msg = data[1].trim();
+                        //Nếu đồng ý thách đấu
                         if(msg.contains("OK")){
-//                            oos.writeObject("START");
                             mainGUI = new ClientPlayGUI(this);
                             mainGUI.setVisible(true);
                             roomFrm.setVisible(false);
-//                            udpSocket.close();
-//                            System.out.println("stop listening battle request");
-//                            sendToPeer("BUSY", receivePk.getAddress(), receivePk.getPort());
                         }else{
                             JOptionPane.showMessageDialog(roomFrm, "request denied!");
                         }
@@ -368,12 +379,12 @@ public class Client {
             }
         }
     }
-    public void register(int posX, int posY) throws IOException {
-//        mySocket = new Socket(serverAddress, serverPort);
+    //Khi bắt đầu game thì gửi vị trí của người chơi lên server
+    public void registerPos(int posX, int posY) throws IOException {
         dos.writeUTF("REGISTER");
         dos.writeUTF(currentUser.getUsername()+","+posX+","+posY);
     }
-    //send msg to server
+    //Gửi một yêu cầu tới server
     public void sendToServer(String title, String data) {
         try {
             dos.writeUTF(title);
@@ -387,10 +398,12 @@ public class Client {
         }
 
     }
+    //Trở về sảnh
     public void returnLobby(){
         mainGUI.dispose();
         roomFrm.setVisible(true);
     }
+    //Lấy danh sách người chơi đang online (đã đăng nhập) từ server
     public ArrayList<User> getOnlineUsers(){
         try {
             dos.writeUTF("GETONLINEUSERS");
@@ -400,21 +413,21 @@ public class Client {
         }
         return loggedUsers;
     }
+    //Lấy danh sách phòng từ server
     public ArrayList<Room> getRooms(){
         try{
             dos.writeUTF("GETROOMS");
             roomList = (ArrayList<Room>) ois.readObject();
-        }catch(IOException | ClassNotFoundException ex){
+        }catch(Exception ex){
             ex.printStackTrace();
-        }catch(NullPointerException ex){
-            System.out.println("0 room");
         }
         return roomList;
     }
+    //Lấy người chơi hiện tại
     public User getCurrentUser(){
         return currentUser;
     }
-    
+    //Lấy danh sách tất cả người dùng và sắp xếp theo thứ tự điểm từ cao đến thấp (Bảng xếp hạng)
     public ArrayList<User> getLeaderBoard(){
         ArrayList<User> userList = null;
         try {

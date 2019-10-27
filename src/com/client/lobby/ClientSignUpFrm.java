@@ -147,7 +147,6 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
         new ClientLoginFrm(client).setVisible(true);
         dispose();
     }//GEN-LAST:event_btnBackActionPerformed
-
     public User getSignUpUser(){
         String txtUsername = jTextField1.getText();
         String txtPass = jPasswordField1.getText();

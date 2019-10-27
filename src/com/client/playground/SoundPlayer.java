@@ -14,6 +14,7 @@ import javax.sound.sampled.Clip;
  *
  * @author luongtx
  */
+//Hiệu ứng âm thanh
 public class SoundPlayer {
     File soundFile;
     public SoundPlayer(String fileName){

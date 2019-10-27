@@ -2,8 +2,6 @@ package com.client.playground;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 
@@ -20,6 +18,7 @@ import javax.swing.ImageIcon;
  *
  * @author Mohamed Talaat Saad
  */
+//Để tạo đối tượng bomb
 public class Bomb {
 
     /**
@@ -73,7 +72,7 @@ public class Bomb {
     public BufferedImage getBombBuffImage() {
         return bombBuffImage;
     }
-
+    //Xử lý xung đột giữa bomb và tank
     public boolean checkCollision() {
         ArrayList<Tank> clientTanks = GameBoardPanel.getClients();
         int x, y;
@@ -81,7 +80,7 @@ public class Bomb {
             if (clientTanks.get(i) != null) {
                 x = clientTanks.get(i).getXposition();
                 y = clientTanks.get(i).getYposition();
-
+                //Khi bomb đã va chạm vào tank
                 if ((yPosi >= y && yPosi <= y + 43) && (xPosi >= x && xPosi <= x + 43)) {
 
                     ClientPlayGUI.setScore(50);
@@ -93,6 +92,7 @@ public class Bomb {
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
+                    //Kiểm tra xem tank còn sống không
                     if (clientTanks.get(i) != null) {
                         sound_explode.playSound();
                         ClientPlayGUI.client.sendToServer("REMOVE", Integer.toString(clientTanks.get(i).getTankID()));
@@ -104,13 +104,12 @@ public class Bomb {
         }
         return false;
     }
-
+    
     public void startBombThread(boolean chekCollision) {
 
         new BombShotThread(chekCollision).start();
 
     }
-
     private class BombShotThread extends Thread {
 
         boolean checkCollis;

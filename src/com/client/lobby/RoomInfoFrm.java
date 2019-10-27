@@ -7,7 +7,6 @@ package com.client.lobby;
 
 import com.client.Room;
 import com.client.User;
-import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 
@@ -15,6 +14,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author luongtx
  */
+//Giao diện xem phòng
 public class RoomInfoFrm extends javax.swing.JFrame {
 
     /**
@@ -25,21 +25,10 @@ public class RoomInfoFrm extends javax.swing.JFrame {
     public RoomInfoFrm(Room room) {
         initComponents();
         this.room = room;
-//        this.addWindowListener(new WindowsClosedListener(this));
         mdtbUsers = (DefaultTableModel) tbUser.getModel();
         lbRoomName.setText(room.getRoomName());
         updateTbUsers(room);
     }
-//    public class WindowsClosedListener extends WindowAdapter {
-//        RoomInfoFrm roomInfor;
-//        public WindowsClosedListener(RoomInfoFrm roomInfor) {
-//            this.roomInfor = roomInfor;
-//        }
-//        @Override
-//        public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-//            System.out.println("closed windows");
-//        }
-//    }
 
     public void updateTbUsers(Room room){
         mdtbUsers.setRowCount(0);

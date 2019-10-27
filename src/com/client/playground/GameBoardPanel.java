@@ -21,6 +21,7 @@ import javax.swing.JPanel;
  *
  * @author Mohamed Talaat Saad
  */
+//gameboard: khu vực hoạt động của các tank
 public class GameBoardPanel extends JPanel {
     
     /** Creates a new instance of GameBoardPanel */
@@ -121,7 +122,6 @@ public class GameBoardPanel extends JPanel {
     {
         gameStatus=status;
     }
-    //get list of client tanks
     public static ArrayList<Tank> getClients()
     {
         return tanks;
