@@ -107,17 +107,17 @@ public class ClientPlayGUI extends JFrame implements ActionListener
     }
    
 
-    public void windowOpened(WindowEvent e) 
-    {
-
-    }
     class WindowListener extends WindowAdapter {
 
         @Override
         public void windowClosing(WindowEvent e) {
-            // int response=JOptionPane.showConfirmDialog(this,"Are you sure you want to exit ?","Tanks 2D Multiplayer Game!",JOptionPane.YES_NO_OPTION);
-            client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
-            isRunning = false;
+            int response=JOptionPane.showConfirmDialog(rootPane,"Are you sure you want to exit ?","Tanks 2D Multiplayer Game!",JOptionPane.OK_CANCEL_OPTION);
+            if(response==JOptionPane.OK_OPTION){
+                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+                isRunning = false;
+                dispose();
+                client.logout();
+            }
         }
     }
     @Override
@@ -146,9 +146,13 @@ public class ClientPlayGUI extends JFrame implements ActionListener
                 System.out.println("The Server is not running!");
             }
         }else{
-            Client.roomFrm.setVisible(true);
-            isRunning = false; 
-            dispose();
+            int response=JOptionPane.showConfirmDialog(rootPane,"Are you sure to exit, your current game will lost?","Tanks 2D Multiplayer Game!",JOptionPane.OK_CANCEL_OPTION);
+            if(response==JOptionPane.OK_OPTION){
+//                client.sendToServer("EXIT",Integer.toString(clientTank.getTankID()));
+                Client.roomFrm.setVisible(true);
+                isRunning = false;
+                dispose();
+            }
         }
         
     }
@@ -161,14 +165,7 @@ public class ClientPlayGUI extends JFrame implements ActionListener
         {
             try{
                  reader = client.getDataInputStream();
-                 System.out.println("reader: "+reader);
-            }catch(Exception ex){
-                ex.printStackTrace();
-            }
-        }
-        public void closeReader(){
-            try{
-                reader.close();
+//                 System.out.println("reader: "+reader);
             }catch(Exception ex){
                 ex.printStackTrace();
             }
@@ -183,7 +180,6 @@ public class ClientPlayGUI extends JFrame implements ActionListener
                     System.out.println("[receive msg from server]");
                     sentence=reader.readUTF();
                     System.out.println("sentence: "+sentence);
-                    System.out.println("[received msg]");
                     if (sentence.startsWith("ID")) {
                         int id = Integer.parseInt(sentence.substring(2));
                         clientTank.setTankID(id);

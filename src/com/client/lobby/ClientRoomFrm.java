@@ -40,7 +40,10 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     private class WindowsClosedListener extends WindowAdapter{
         @Override
         public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-//            client.logout();
+            int option = JOptionPane.showConfirmDialog(rootPane, "Are you sure to exit: ",null, JOptionPane.OK_CANCEL_OPTION);
+            if(option==JOptionPane.OK_OPTION){
+                client.logout();
+            }
         }
     }
     /**
@@ -65,10 +68,11 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         tbRoom = new javax.swing.JTable();
         btnDeleteRoom = new javax.swing.JButton();
+        btnViewLB = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        btnRefresh.setBackground(new java.awt.Color(0, 255, 255));
+        btnRefresh.setBackground(new java.awt.Color(204, 204, 204));
         btnRefresh.setText("Refesh");
         btnRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -76,7 +80,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
             }
         });
 
-        btnCombat.setBackground(new java.awt.Color(0, 255, 255));
+        btnCombat.setBackground(new java.awt.Color(204, 204, 204));
         btnCombat.setText("Solo");
         btnCombat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -84,7 +88,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
             }
         });
 
-        btnCreateRoom.setBackground(new java.awt.Color(0, 255, 255));
+        btnCreateRoom.setBackground(new java.awt.Color(204, 204, 204));
         btnCreateRoom.setText("Creat Room");
         btnCreateRoom.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -108,7 +112,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
             }
         });
 
-        btnJoin.setBackground(new java.awt.Color(0, 255, 255));
+        btnJoin.setBackground(new java.awt.Color(204, 204, 204));
         btnJoin.setText("Join");
         btnJoin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -139,11 +143,19 @@ public class ClientRoomFrm extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tbRoom);
 
-        btnDeleteRoom.setBackground(new java.awt.Color(0, 255, 255));
+        btnDeleteRoom.setBackground(new java.awt.Color(204, 204, 204));
         btnDeleteRoom.setText("Delete Room");
         btnDeleteRoom.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteRoomActionPerformed(evt);
+            }
+        });
+
+        btnViewLB.setBackground(new java.awt.Color(204, 204, 204));
+        btnViewLB.setText("Leader board");
+        btnViewLB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewLBActionPerformed(evt);
             }
         });
 
@@ -158,10 +170,12 @@ public class ClientRoomFrm extends javax.swing.JFrame {
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(lbOnline))
+                    .addComponent(lstUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(31, 31, 31)
-                        .addComponent(btnCombat, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lstUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnCombat, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
+                            .addComponent(btnViewLB, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -213,7 +227,8 @@ public class ClientRoomFrm extends javax.swing.JFrame {
                         .addGap(34, 34, 34)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btnRefresh)
-                            .addComponent(btnDeleteRoom))))
+                            .addComponent(btnDeleteRoom)
+                            .addComponent(btnViewLB))))
                 .addGap(38, 38, 38))
         );
 
@@ -314,6 +329,12 @@ public class ClientRoomFrm extends javax.swing.JFrame {
             new RoomInfoFrm(room).setVisible(true);
         }
     }//GEN-LAST:event_tbRoomMouseClicked
+
+    private void btnViewLBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewLBActionPerformed
+        // TODO add your handling code here:
+        UserInforFrm inforFrm = new UserInforFrm(client.getLeaderBoard());
+        inforFrm.setVisible(true);
+    }//GEN-LAST:event_btnViewLBActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCombat;
@@ -321,6 +342,7 @@ public class ClientRoomFrm extends javax.swing.JFrame {
     private javax.swing.JButton btnDeleteRoom;
     private javax.swing.JButton btnJoin;
     private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnViewLB;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

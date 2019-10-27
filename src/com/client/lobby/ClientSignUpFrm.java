@@ -50,7 +50,7 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
 
         jLabel2.setText("Password");
 
-        btnSignUp.setBackground(new java.awt.Color(0, 255, 255));
+        btnSignUp.setBackground(new java.awt.Color(153, 153, 153));
         btnSignUp.setText("Sign Up");
         btnSignUp.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -58,6 +58,7 @@ public class ClientSignUpFrm extends javax.swing.JFrame {
             }
         });
 
+        btnBack.setBackground(new java.awt.Color(153, 153, 153));
         btnBack.setText("Back");
         btnBack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

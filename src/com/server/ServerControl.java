@@ -28,12 +28,13 @@ public final class ServerControl {
     private Connection dbConn;
     private final int serverPort = 7777;
     private ServerDAO dao;
+    private ArrayList<User> userList = new ArrayList<>();
     private ArrayList<User> onlineUsers = new ArrayList<>();
     private ArrayList<Room> roomList = new ArrayList<>();
     private ArrayList<Player> players = new ArrayList<>();
     private ServerStartFrm startFrm;
     private Protocol protocol;
-    private boolean running = true;
+    public boolean running = true;
 
     public ServerControl() {
         dao = new ServerDAO();
@@ -47,14 +48,24 @@ public final class ServerControl {
         startFrm = new ServerStartFrm(this);
         startFrm.setVisible(true);
     }
-
+    public void stopServer(){
+        try{
+            dbConn.close();
+            myServer.close();
+            running = false;
+            System.out.println("Server is stopped");
+            System.exit(0);
+        }catch(Exception ex){
+//            ex.printStackTrace();
+        }
+    }
     public void listenning(int portNumber) {
         try {
             //create(bind) server socket to listenning client on specified port
             myServer = new ServerSocket(portNumber);
             System.out.println("Server is listenning...");
             //to serve multiple players
-            while (true) {
+            while (running) {
                 try {
                     //accept a client connection request
                     socketConn = myServer.accept();
@@ -101,7 +112,7 @@ public final class ServerControl {
                     handle(request);
                 } catch (Exception ex) {
                     System.out.println("Client closed!");
-                    ex.printStackTrace();
+//                    ex.printStackTrace();
                     break;
                 }
             }
@@ -206,7 +217,7 @@ public final class ServerControl {
                         players.add(new Player(userName, dos, x, y, 1));
                         System.out.println(players.size());
                         break;
-                    case "UPDATE":
+                    case "MOVE":
 //                        System.out.println("UPDATE");
                         msg = dis.readUTF();
                         System.out.println(msg);
@@ -233,10 +244,12 @@ public final class ServerControl {
                         msg = dis.readUTF();
                         System.out.println(msg);
                         data = msg.split(" ");
+                        //cap nhat diem cho player 1
                         String playerName = data[0];
                         User user1 = onlineUsers.get(getUserIndex(playerName));
                         int score = user1.getScore();
                         user1.setScore(score + 50);
+                        //cap nhat diem cho player 2
                         id = Integer.parseInt(data[1]);
                         playerName = players.get(id-1).getPlayerName();
                         User user2 = onlineUsers.get(getUserIndex(playerName));
@@ -265,6 +278,12 @@ public final class ServerControl {
                         if (players.get(id - 1) != null) {
                             players.set(id-1,null);
                         }
+                        break;
+                    case "GETALLUSERS":
+                        System.out.println("get all users");
+                        userList = dao.getAllUsers();
+//                        oos.reset();
+                        oos.writeObject(userList);
                         break;
                     default:
                         break;

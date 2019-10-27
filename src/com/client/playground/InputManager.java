@@ -46,16 +46,15 @@ public class InputManager implements KeyListener
         {
             if(tank.getDirection()==1|tank.getDirection()==3)
             {
-                
                 tank.moveLeft();
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                 
  
             }
             else if(tank.getDirection()==4)
             {
                 tank.moveLeft();          
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
             }
         }
         else if(e.getKeyCode()==RIGHT)
@@ -64,13 +63,13 @@ public class InputManager implements KeyListener
             {
                 System.out.println("tank id: "+tank.getTankID());
                 tank.moveRight();                        
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                     
             }
             else if(tank.getDirection()==2)
             {
                 tank.moveRight();
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
             }
         }
         else if(e.getKeyCode()==UP)
@@ -78,13 +77,13 @@ public class InputManager implements KeyListener
             if(tank.getDirection()==2|tank.getDirection()==4)
             {
                 tank.moveForward();                            
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                         
             }
             else if(tank.getDirection()==1)
             {
                 tank.moveForward();
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                             
             }
         }
@@ -94,13 +93,13 @@ public class InputManager implements KeyListener
             {
                 tank.moveBackward();
                
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                             
             }
             else if(tank.getDirection()==3)
             {
                 tank.moveBackward();
-                client.sendToServer("UPDATE",updatePacket());
+                client.sendToServer("MOVE",updatePacket());
                                 
             }
         }

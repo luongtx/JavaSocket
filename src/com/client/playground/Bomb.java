@@ -33,10 +33,9 @@ public class Bomb {
     private int direction;
     public boolean stop = false;
     private float velocityX = 0.05f, velocityY = 0.05f;
-
+    final SoundPlayer sound_boom = new SoundPlayer("lazerboom.wav");
+    final SoundPlayer sound_explode = new SoundPlayer("explosion.wav");
     public Bomb(int x, int y, int direction) {
-        final SimpleSoundPlayer sound_boom = new SimpleSoundPlayer("boom.wav");
-        final InputStream stream_boom = new ByteArrayInputStream(sound_boom.getSamples());
         xPosi = x;
         yPosi = y;
         this.direction = direction;
@@ -46,7 +45,7 @@ public class Bomb {
         bombBuffImage = new BufferedImage(bombImg.getWidth(null), bombImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
         bombBuffImage.createGraphics().drawImage(bombImg, 0, 0, null);
         Thread t = new Thread(() -> {
-            sound_boom.play(stream_boom);
+            sound_boom.playSound();
         });
         t.start();
     }
@@ -95,6 +94,7 @@ public class Bomb {
                         ex.printStackTrace();
                     }
                     if (clientTanks.get(i) != null) {
+                        sound_explode.playSound();
                         ClientPlayGUI.client.sendToServer("REMOVE", Integer.toString(clientTanks.get(i).getTankID()));
                     }
 

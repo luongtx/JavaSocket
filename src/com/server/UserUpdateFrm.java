@@ -88,7 +88,7 @@ public class UserUpdateFrm extends javax.swing.JFrame {
         lstUsers = new java.awt.List();
         btnRefresh = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         tbUser.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {

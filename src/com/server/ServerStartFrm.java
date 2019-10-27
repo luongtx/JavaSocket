@@ -5,6 +5,9 @@
  */
 package com.server;
 
+import java.awt.Color;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author luongtx
@@ -18,6 +21,7 @@ public class ServerStartFrm extends javax.swing.JFrame {
     public ServerStartFrm(ServerControl server) {
         initComponents();
         this.server = server;
+        lbStatus.setForeground(Color.green);
     }
 
     /**
@@ -30,7 +34,8 @@ public class ServerStartFrm extends javax.swing.JFrame {
     private void initComponents() {
 
         btnManage = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        lbStatus = new javax.swing.JLabel();
+        btnStop = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -41,31 +46,42 @@ public class ServerStartFrm extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setForeground(new java.awt.Color(0, 204, 0));
-        jLabel1.setText("Server is started");
+        lbStatus.setText("Server is started");
+
+        btnStop.setText("Stop server");
+        btnStop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStopActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(63, 63, 63)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnManage)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel1)
-                        .addGap(8, 8, 8)))
+                        .addGap(73, 73, 73)
+                        .addComponent(lbStatus)
+                        .addGap(8, 8, 8))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(63, 63, 63)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnManage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnStop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap(67, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(54, 54, 54)
-                .addComponent(jLabel1)
+                .addGap(46, 46, 46)
+                .addComponent(lbStatus)
                 .addGap(18, 18, 18)
                 .addComponent(btnManage)
-                .addContainerGap(59, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(btnStop)
+                .addContainerGap(50, Short.MAX_VALUE))
         );
 
         pack();
@@ -76,14 +92,26 @@ public class ServerStartFrm extends javax.swing.JFrame {
         // TODO add your handling code here:
         UserUpdateFrm updateFrm = new UserUpdateFrm(server);
         updateFrm.setVisible(true);
-        dispose();
     }//GEN-LAST:event_btnManageActionPerformed
+
+    private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
+        // TODO add your handling code here:
+        lbStatus.setText("Server is stopping");
+        lbStatus.setForeground(Color.red);
+        try{
+            Thread.sleep(1000);
+        }catch(Exception ex){
+            
+        }
+        server.stopServer();
+    }//GEN-LAST:event_btnStopActionPerformed
 
     /**
      * @param args the command line arguments
      */
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnManage;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton btnStop;
+    private javax.swing.JLabel lbStatus;
     // End of variables declaration//GEN-END:variables
 }

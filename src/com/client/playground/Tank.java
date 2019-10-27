@@ -28,7 +28,8 @@ public class Tank {
     private int direction=1;
     private float velocityX=0.03125f,velocityY=0.03125f;
     private int width=559,height=473;
-
+    
+    final SoundPlayer sound_move = new SoundPlayer("tank_drill.wav");
     public int getDirection() 
     {
         return direction;
@@ -89,6 +90,7 @@ public class Tank {
     {
         if(direction==1|direction==3)
         {
+           sound_move.playSound();
            ImageBuff=new BufferedImage(tankImg[3].getWidth(null),tankImg[3].getHeight(null),BufferedImage.TYPE_INT_RGB);
            ImageBuff.createGraphics().drawImage(tankImg[3],0,0,null);
            direction=4;
@@ -115,6 +117,7 @@ public class Tank {
     {
         if(direction==1|direction==3)
         {
+           sound_move.playSound();
            ImageBuff=new BufferedImage(tankImg[1].getWidth(null),tankImg[1].getHeight(null),BufferedImage.TYPE_INT_RGB);
            ImageBuff.createGraphics().drawImage(tankImg[1],0,0,null);
            direction=2;
@@ -141,6 +144,7 @@ public class Tank {
     {
         if(direction==2|direction==4)
         {
+           sound_move.playSound();
            ImageBuff=new BufferedImage(tankImg[0].getWidth(null),tankImg[0].getHeight(null),BufferedImage.TYPE_INT_RGB);
            ImageBuff.createGraphics().drawImage(tankImg[0],0,0,null);
            direction=1;
@@ -165,6 +169,7 @@ public class Tank {
     {
         if(direction==2|direction==4)
         {
+           sound_move.playSound();
            ImageBuff=new BufferedImage(tankImg[2].getWidth(null),tankImg[2].getHeight(null),BufferedImage.TYPE_INT_RGB);
            ImageBuff.createGraphics().drawImage(tankImg[2],0,0,null);
            direction=3;

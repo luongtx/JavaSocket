@@ -7,7 +7,6 @@ package com.client;
 
 import com.client.lobby.ClientLoginFrm;
 import com.client.lobby.ClientRoomFrm;
-import com.client.lobby.ClientTestFrm;
 import com.client.playground.ClientPlayGUI;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,6 +18,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -412,25 +413,23 @@ public class Client {
     public User getCurrentUser(){
         return currentUser;
     }
-//    public InetAddress getPrivateAddress(){
-//        InetAddress inet = null;
-//        try {
-//            Enumeration e = NetworkInterface.getNetworkInterfaces();
-//            while(e.hasMoreElements())
-//            {
-//                NetworkInterface n = (NetworkInterface) e.nextElement();
-//                Enumeration ee = n.getInetAddresses();
-//                while (ee.hasMoreElements())
-//                {
-//                    InetAddress i = (InetAddress) ee.nextElement();
-//                    if(i.isSiteLocalAddress()) return inet = i;
-//                }
-//            }
-//        } catch (SocketException ex) {
-//            ex.printStackTrace();
-//        }
-//        return inet;
-//    }
+    
+    public ArrayList<User> getLeaderBoard(){
+        ArrayList<User> userList = null;
+        try {
+            dos.writeUTF("GETALLUSERS");
+            userList = (ArrayList<User>) ois.readObject();
+            Collections.sort(userList, new Comparator<User>() {
+                @Override
+                public int compare(User o1, User o2) {
+                    return o2.getScore() - o1.getScore();
+                }
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return userList;
+    }
 
     public Socket getSocket() {
         return mySocket;

@@ -49,7 +49,7 @@ public class ClientLoginFrm extends javax.swing.JFrame {
         jPasswordField1 = new javax.swing.JPasswordField();
         jLabel3 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setBackground(new java.awt.Color(0, 255, 255));
 
         lbSignUp.setForeground(new java.awt.Color(0, 51, 204));
@@ -60,7 +60,7 @@ public class ClientLoginFrm extends javax.swing.JFrame {
             }
         });
 
-        btnLogin.setBackground(new java.awt.Color(0, 255, 255));
+        btnLogin.setBackground(new java.awt.Color(204, 204, 204));
         btnLogin.setText("Login");
         btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
