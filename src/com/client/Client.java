@@ -141,6 +141,8 @@ public class Client {
                 roomFrm.setVisible(true);
 //                loginFrm.setVisible(false);
                 loginFrm.dispose();
+//                Thread.sleep(1000);
+                sendToAll("UPDATE");
             }else{
                 JOptionPane.showMessageDialog(loginFrm, "Sai tên đăng nhập hoặc mật khẩu!");
             }
@@ -227,6 +229,7 @@ public class Client {
             roomList.add(room);
             dos.writeUTF("UPDATEROOMS");
             oos.writeObject(roomList);
+            sendToAll("UPDATE");
         }catch(Exception ex){
             ex.printStackTrace();
         }
@@ -265,6 +268,7 @@ public class Client {
     }
     // gửi một thông điệp tới một client xác định bởi ip và port
     public void sendToPeer(String msg, InetAddress address, int port){
+        if(udpSocket.getLocalPort()==port) return;
         try {
             byte[] send_buf = msg.getBytes();
             sendPk = new DatagramPacket(send_buf, send_buf.length,address,port);
@@ -275,12 +279,27 @@ public class Client {
         }
     }
     //gửi thông điệp cho tất cả các client trong một phòng nhất định
-    public void sendRoomMsg(String msg, int roomID) throws InterruptedException{
-        Room aRoom = roomList.get(roomID);
-        ArrayList<User> roomMembers = aRoom.getUserList();
-        for(User user: roomMembers){
-            sendToPeer(msg, user.getIpAddress(), user.getPort());
-            Thread.sleep(500);
+    public void sendRoomMsg(String msg, int roomID){
+        try{
+            Room aRoom = roomList.get(roomID);
+            ArrayList<User> roomMembers = aRoom.getUserList();
+            for(User user: roomMembers){
+                sendToPeer(msg, user.getIpAddress(), user.getPort());
+                Thread.sleep(500);
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
+    //gửi thông điệp cho tất cả người chơi
+    public void sendToAll(String msg){
+        try{
+            for(User user: loggedUsers){
+                sendToPeer(msg, user.getIpAddress(), user.getPort());
+//                Thread.sleep(500);
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
         }
     }
     //lắng nghe yêu cầu từ các client khác
@@ -326,6 +345,7 @@ public class Client {
                         //Nếu người yêu cầu nhập phòng là chính người chơi hiện tại
                         if(loggedUsers.get(userID).getUsername().equals(currentUser.getUsername())){
                             addUserToRoom(userID, roomID);
+                            sendToAll("UPDATE");
                         }else{
                             String roomName = roomList.get(roomID).getRoomName();
                             String userName = loggedUsers.get(userID).getUsername();
@@ -336,6 +356,7 @@ public class Client {
                             }else ans = "REPJOIN CANCEL";
                             //Gửi thông điệp xác nhận cho nhập phòng tới người yêu cầu nhập phòng
                             sendToPeer(ans, receivePk.getAddress(), receivePk.getPort());
+                            sendToAll("UPDATE");
                         }
                         //Nếu phòng đã đủ người thì thông báo cho tất cả người chơi trong phòng bắt đầu game
                         if (roomList.get(roomID).getStatus().contains("full")) {
@@ -375,7 +396,10 @@ public class Client {
                         }
                         break;
                     default:
+                        roomFrm.updateListUser(getOnlineUsers());
+                        roomFrm.updateTbRoom(getRooms());
                         break;
+                    
                 }
                
             }catch(Exception ex){

@@ -106,10 +106,10 @@ public class ClientRoomFrm extends javax.swing.JFrame {
 
         lbOnline.setText("jLabel3");
 
-        jLabel2.setText("Ds phòng");
+        jLabel2.setText("DS Phòng");
 
         lbLogout.setForeground(new java.awt.Color(255, 0, 0));
-        lbLogout.setText("Log out");
+        lbLogout.setText("Thoát");
         lbLogout.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 lbLogoutMouseClicked(evt);
