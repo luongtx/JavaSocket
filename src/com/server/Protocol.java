@@ -1,18 +1,5 @@
 package com.server;
 
-/*
- * Protocol.java
- *
- * Created on 01 �����, 2008, 09:38 �
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Mohamed Talaat Saad
- */
 //Tạo thông điệp đầy đủ để gửi cho client
 public class Protocol {
     
