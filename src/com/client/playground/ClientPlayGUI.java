@@ -22,20 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-/*
- * ClientPlayGUI.java
- *
- * Created on 21 ����, 2008, 02:26 �
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 
-/**
- *
- * @author Mohamed Talaat Saad
- */
-//Giao diện game
 public class ClientPlayGUI extends JFrame implements ActionListener
 {
     
