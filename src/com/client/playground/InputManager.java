@@ -3,19 +3,7 @@ package com.client.playground;
 import com.client.Client;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-/*
- * InputManager.java
- *
- * Created on 25 ����, 2008, 02:57 �
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 
-/**
- *
- * @author Mohamed Talaat Saad
- */
 //Xử lý sự kiện nhấn phím
 public class InputManager implements KeyListener  
 {
